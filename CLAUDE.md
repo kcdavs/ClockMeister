@@ -45,13 +45,23 @@ Proposed color zones (to become a data file mapping part name → zone, Stage 5/
 - Fixed (not selectable): M3 screws, Pendulm Rod
 Known issue: two parts are both named "Hour Wheel" (white and gray). Rename the gray one in Onshape on next export; until then distinguish by material color.
 
+## 3D viewer
+- `components/ClockViewer.tsx` (client component): loads the GLB with drei `useGLTF` (meshopt supported), assigns each mesh a zone via `zoneForPart()`, repaints from a `colors` prop, outlines edges with `EdgesGeometry` (EDGE_ANGLE = 30°, ~151k segments, ~0.3 s to compute).
+- Orientation: Onshape exports Z-up; the model is rotated -90° about X, then 180° about Y so the face points at the camera.
+- Controls mirror Onshape: scroll zooms toward the cursor; left/right-drag rotate; middle-drag or Shift+drag pan; "Reset view" button re-fits via drei `useBounds`. Zoom limits 0.05–2.5 m.
+- Tradeoff accepted: scrolling over the viewer zooms rather than scrolling the page, so the layout must never let the viewer fill the whole screen.
+- Unmapped parts render magenta (`#ff00ff`) and log a console warning.
+- To do: phone touch: a finger on the canvas rotates, so leave scrollable margin around it. Check edge-line performance on phones after deploying.
+- Future idea: exploded view (slide parts apart front-to-back with a slider/animation) to demystify the mechanism.
+
 ## Roadmap
 1. ✅ Tools and repo (Node v25, npm, git; repo cloned to ~/clock-website)
 2. ✅ Next.js skeleton, README, CLAUDE.md, first commit, first push
    ✅ Real model optimized early (was Stage 9)
-3. Design system + hero
+   ✅ 3D viewer (was Stage 5): `components/ClockViewer.tsx` + `data/zones.ts`
+3. Design system + hero (design around the clock)
 4. Content sections (how it works, specs, FAQ, shipping)
-5. 3D clock in the browser (real model), part→zone mapping
+5. (done early — see above)
 6. Configurator (filaments.json, per-zone colors, live price, numeral/face contrast check)
 7. Deploy to Vercel
 8. Stripe Checkout + serverless function + success page
