@@ -1,0 +1,69 @@
+.picker {
+  position: absolute;
+  z-index: 2;
+  background: var(--paper);
+  border: var(--rule) solid var(--ink);
+  padding: var(--space-2);
+  box-shadow: 6px 6px 0 var(--ink); /* flat offset shadow, Bauhaus-poster style */
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  font-weight: 500;
+}
+
+.current {
+  color: var(--muted);
+}
+
+.close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 6 swatches per row */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.swatch:hover {
+  transform: scale(1.1);
+}
+
+.swatch[aria-pressed="true"] {
+  outline: 3px solid var(--ink);
+  outline-offset: 1px;
+}
+
+/* Design-mode free color picker */
+.custom {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px dashed var(--ink);
+  background: none;
+  cursor: pointer;
+}
+
+.warning {
+  margin-top: var(--space-2);
+  color: var(--red);
+}

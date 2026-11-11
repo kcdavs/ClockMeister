@@ -1,27 +1,36 @@
 "use client"; // runs in the browser (3D needs the visitor's graphics card), not on the server
 
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { Canvas } from "@react-three/fiber";
-import {
-  Bounds,
-  Center,
-  OrbitControls,
-  useBounds,
-  useGLTF,
-} from "@react-three/drei";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, ThreeEvent } from "@react-three/fiber";
+import { Bounds, Center, OrbitControls, useBounds, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import { ZoneId, zoneForPart } from "@/data/zones";
+import { ZONES, ZoneId, zoneForPart } from "@/data/zones";
+import { DESIGN_MODE, nameFor } from "@/lib/colors";
 import { Colors, useClockColors } from "./ClockColors";
-import ColorPresets from "./ColorPresets";
+import PartPicker, { PICKER_WIDTH } from "./PartPicker";
 import styles from "./ClockViewer.module.css";
 
 const MODEL_URL = "/models/clock.glb";
 const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
 const EDGE_ANGLE = 30; // degrees; lower = more outlines, higher = only the sharpest edges
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: "#111111" });
+const HOVER_GLOW = 0.15; // how much a hovered color group lights up
+
+type ModelProps = {
+  colors: Colors;
+  hovered: ZoneId | null;
+  onHover: (zone: ZoneId | null) => void;
+  onPick: (zone: ZoneId, x: number, y: number) => void;
+};
+
+// The part's color group, or null for hardware / unknown parts (not clickable).
+const pickableZone = (obj: THREE.Object3D) => {
+  const zone = obj.userData.zone as ZoneId | null;
+  return zone && zone !== "fixed" ? zone : null;
+};
 
 // Loads the model once, gives every part its own material, and tags it with its zone.
-function ClockModel({ colors }: { colors: Colors }) {
+function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
   const { scene } = useGLTF(MODEL_URL);
 
   const model = useMemo(() => {
@@ -48,28 +57,46 @@ function ClockModel({ colors }: { colors: Colors }) {
         new THREE.EdgesGeometry(obj.geometry, EDGE_ANGLE),
         EDGE_MATERIAL,
       );
+      edges.raycast = () => {}; // outlines shouldn't catch clicks; the part underneath should
       obj.add(edges);
     });
     return root;
   }, [scene]);
 
-  // Whenever the chosen colors change, repaint each part from its zone's color.
+  // Repaint each part from its zone's color, and make the hovered color group glow slightly.
   useEffect(() => {
     model.traverse((obj) => {
       if (!(obj instanceof THREE.Mesh)) return;
       const zone = obj.userData.zone as ZoneId | null;
-      (obj.material as THREE.MeshStandardMaterial).color.set(
-        (zone && colors[zone]) || UNMAPPED,
-      );
+      const material = obj.material as THREE.MeshStandardMaterial;
+      material.color.set((zone && colors[zone]) || UNMAPPED);
+      material.emissive.set(zone && zone === hovered ? "#ffffff" : "#000000");
+      material.emissiveIntensity = HOVER_GLOW;
     });
-  }, [model, colors]);
+  }, [model, colors, hovered]);
 
-  return <primitive object={model} />;
+  return (
+    <primitive
+      object={model}
+      onPointerMove={(e: ThreeEvent<PointerEvent>) => {
+        e.stopPropagation(); // only the front-most part under the cursor counts
+        onHover(pickableZone(e.object));
+      }}
+      onPointerOut={() => onHover(null)}
+      onClick={(e: ThreeEvent<MouseEvent>) => {
+        if (e.delta > 4) return; // the mouse moved: that was a drag to rotate, not a click
+        e.stopPropagation();
+        const zone = pickableZone(e.object);
+        if (zone) onPick(zone, e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+      }}
+    />
+  );
 }
 
 export default function ClockViewer() {
   // The current colors come from the shared store (ClockColors.tsx)
   const { colors } = useClockColors();
+  const wrapper = useRef<HTMLDivElement>(null);
 
   // Each click of "Reset view" bumps this number, which tells ResetView to re-frame the clock.
   const [resetCount, setResetCount] = useState(0);
@@ -78,13 +105,42 @@ export default function ClockViewer() {
   // After a click, scrolling zooms the clock, until the mouse leaves the viewer.
   const [active, setActive] = useState(false);
 
+  // Which color group the mouse is over, and which one has its popup open (and where).
+  const [hovered, setHovered] = useState<ZoneId | null>(null);
+  const [picked, setPicked] = useState<{ zone: ZoneId; x: number; y: number } | null>(null);
+  const closePicker = useCallback(() => setPicked(null), []);
+
+  // Open the popup just below-right of the click, flipped left if it would run off the edge.
+  function openPicker(zone: ZoneId, x: number, y: number) {
+    const width = wrapper.current?.clientWidth ?? 0;
+    const left = x + 16 + PICKER_WIDTH > width ? x - 16 - PICKER_WIDTH : x + 16;
+    setPicked({ zone, x: Math.max(8, left), y: y + 16 });
+  }
+
+  const [copied, setCopied] = useState(false);
+  async function copyColors() {
+    const summary = Object.fromEntries(
+      ZONES.filter((z) => z.id !== "fixed").map((z) => [
+        z.id,
+        `${nameFor(colors[z.id])} (${colors[z.id]})`,
+      ]),
+    );
+    await navigator.clipboard.writeText(JSON.stringify(summary, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   return (
     <div
-      style={{ position: "relative", height: "100%" }}
+      ref={wrapper}
+      style={{ position: "relative", height: "100%", cursor: hovered ? "pointer" : "grab" }}
       onPointerDown={() => setActive(true)}
-      onPointerLeave={() => setActive(false)}
+      onPointerLeave={() => {
+        setActive(false);
+        setHovered(null);
+      }}
     >
-      <Canvas camera={{ fov: 35 }} dpr={[1, 2]}>
+      <Canvas camera={{ fov: 35 }} dpr={[1, 2]} onPointerMissed={closePicker}>
         {/* Soft overall light plus two directional "lamps" so the gear teeth read clearly */}
         <ambientLight intensity={0.8} />
         <directionalLight position={[3, 4, 5]} intensity={1.6} />
@@ -99,7 +155,12 @@ export default function ClockViewer() {
                 upright (inner group), then turn it around so the face is toward us (outer group) */}
               <group rotation={[0, Math.PI, 0]}>
                 <group rotation={[-Math.PI / 2, 0, 0]}>
-                  <ClockModel colors={colors} />
+                  <ClockModel
+                    colors={colors}
+                    hovered={hovered}
+                    onHover={setHovered}
+                    onPick={openPicker}
+                  />
                 </group>
               </group>
             </Center>
@@ -123,17 +184,22 @@ export default function ClockViewer() {
         />
       </Canvas>
 
-      <button
-        onClick={() => setResetCount((n) => n + 1)}
-        className={`${styles.reset} label`}
-      >
-        Reset view
-      </button>
-      <ColorPresets />
+      {picked && <PartPicker {...picked} onClose={closePicker} />}
+
+      <div className={styles.tools}>
+        {DESIGN_MODE && (
+          <button onClick={copyColors} className={`${styles.tool} label`}>
+            {copied ? "Copied" : "Copy colors"}
+          </button>
+        )}
+        <button onClick={() => setResetCount((n) => n + 1)} className={`${styles.tool} label`}>
+          Reset view
+        </button>
+      </div>
       <p className={`${styles.hint} label`}>
         {active
-          ? "Scroll to zoom · Drag to rotate · Shift + drag to pan"
-          : "Click the clock to explore"}
+          ? "Click a part to recolor · Scroll to zoom · Drag to rotate"
+          : "Click any part to change its color"}
       </p>
     </div>
   );

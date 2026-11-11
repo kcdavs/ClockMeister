@@ -1,0 +1,19 @@
+[
+  { "id": "black", "name": "Black", "hex": "#111111" },
+  { "id": "charcoal", "name": "Charcoal", "hex": "#3a3a3a" },
+  { "id": "gray", "name": "Gray", "hex": "#a5a5a5" },
+  { "id": "bone", "name": "Bone White", "hex": "#eaeaea" },
+  { "id": "ivory", "name": "Ivory", "hex": "#e8dcc0" },
+  { "id": "burgundy", "name": "Burgundy", "hex": "#9b1c2e" },
+  { "id": "red", "name": "Signal Red", "hex": "#c8281e" },
+  { "id": "pink", "name": "Pink", "hex": "#e86a9a" },
+  { "id": "blush", "name": "Blush", "hex": "#f7d6e0" },
+  { "id": "orange", "name": "Orange", "hex": "#e0702a" },
+  { "id": "sunflower", "name": "Sunflower Yellow", "hex": "#f2b705" },
+  { "id": "sage", "name": "Sage", "hex": "#9fb39a" },
+  { "id": "forest", "name": "Forest Green", "hex": "#2f5d3a" },
+  { "id": "sky", "name": "Sky Blue", "hex": "#9dcfed" },
+  { "id": "cobalt", "name": "Cobalt Blue", "hex": "#1f4fa3" },
+  { "id": "navy", "name": "Navy", "hex": "#1c2a44" },
+  { "id": "walnut", "name": "Walnut Brown", "hex": "#5a3a26" }
+]

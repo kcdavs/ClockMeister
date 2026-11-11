@@ -4,8 +4,8 @@
      ├──────────────────────┤                          │
      │ specs                │  viewer                  │
      ├──────────────────────┤  (all rows, taller       │
-     │ window (fills        │   than the screen)       │
-     │ remaining space)     │                          │
+     │ window (empty, for   │   than the screen)       │
+     │ an illustration)     │                          │
      ├──────┬────┬──────────┤                          │
      │ red  │blue│ (empty)  │                          │
      └──────┴────┴──────────┴──────────────────────────┘
@@ -84,7 +84,7 @@
 .viewer {
   grid-column: 4;
   grid-row: 1 / -1;
-  height: 130vh;
+  min-height: 130vh; /* grows if the sidebar is taller */
 }
 
 /* Phones and narrow windows: stack everything in one column */
@@ -101,7 +101,8 @@
   }
   .viewer {
     order: -1; /* show the clock right after the headline... */
-    height: 90vh;
+    min-height: 0;
+    height: 75vh;
   }
   .intro {
     order: -2; /* ...which comes first */

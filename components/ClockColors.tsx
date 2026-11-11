@@ -7,6 +7,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { ZONES, ZoneId } from "@/data/zones";
+import { isLight } from "@/lib/colors";
 
 export type Colors = Record<ZoneId, string>;
 
@@ -51,11 +52,4 @@ export function useClockColors() {
   const store = useContext(ClockColorsContext);
   if (!store) throw new Error("useClockColors must be used inside <ClockColorsProvider>");
   return store;
-}
-
-// Perceived brightness of a hex color (0 = black, 1 = white), using standard luminance weights.
-function isLight(hex: string) {
-  const n = parseInt(hex.slice(1), 16);
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6;
 }

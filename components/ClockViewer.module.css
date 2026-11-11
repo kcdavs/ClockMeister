@@ -1,9 +1,14 @@
 /* Small overlays on top of the 3D canvas */
 
-.reset {
+.tools {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
+  display: flex;
+  gap: var(--space-1);
+}
+
+.tool {
   background: var(--paper);
   color: var(--ink);
   border: 2px solid var(--ink);
@@ -11,7 +16,7 @@
   cursor: pointer;
 }
 
-.reset:hover {
+.tool:hover {
   background: var(--ink);
   color: var(--paper);
 }
