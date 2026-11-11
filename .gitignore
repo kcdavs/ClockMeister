@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# original CAD exports (large; optimized copies live in public/models)
+/models-src/

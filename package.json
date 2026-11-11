@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "model": "sh scripts/optimize-model.sh"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -14,6 +15,7 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
