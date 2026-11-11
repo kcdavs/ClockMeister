@@ -84,7 +84,7 @@
 .viewer {
   grid-column: 4;
   grid-row: 1 / -1;
-  min-height: 156vh; /* the clock is fitted to this height, so taller = bigger clock */
+  min-height: 130vh; /* grows if the sidebar is taller */
 }
 
 /* Phones and narrow windows: stack everything in one column */
@@ -102,7 +102,7 @@
   .viewer {
     order: -1; /* show the clock right after the headline... */
     min-height: 0;
-    height: 90vh;
+    height: 75vh;
   }
   .intro {
     order: -2; /* ...which comes first */

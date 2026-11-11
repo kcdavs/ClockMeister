@@ -51,7 +51,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 ## 3D viewer and configurator
 - `components/ClockViewer.tsx` (client component): loads the GLB with drei `useGLTF`, tags each mesh with its zone, repaints from the shared color store, outlines edges with `EdgesGeometry` (EDGE_ANGLE = 30°, ~151k segments, ~0.3 s; outlines have raycast disabled so clicks hit parts).
 - Orientation: Onshape exports Z-up; the model is rotated -90° about X, then 180° about Y so the face points at the camera.
-- Controls mirror Onshape: scroll zooms toward the cursor; left/right-drag rotate; middle-drag or Shift+drag pan; "Reset view" re-fits via drei `useBounds`. Zoom limits 0.05–2.5 m.
+- Controls mirror Onshape: scroll zooms toward the cursor; left/right-drag rotate; middle-drag or Shift+drag pan; "Reset view" re-fits. Framing is custom (`FitCamera` in ClockViewer, FIT_MARGIN): drei `Bounds` was dropped because it fits the largest dimension as if the clock were square, which wasted space in a tall cell. Zoom limits 0.05–2.5 m.
 - "Click / tap to explore": zoom (and on touch devices, rotation) is off until the visitor clicks/taps the clock, so the page scrolls over it. Mouse: ends on pointer leave. Touch: ends on a tap outside. `.idle canvas { touch-action: pan-y }` lets fingers scroll the page.
 - Configurator = click a part: hover glows the whole zone, click (not drag; `e.delta > 4` = drag) opens `components/PartPicker.tsx` with filament swatches. On narrow screens (<560px) the picker is a full-width bottom sheet.
 - Shared color store: `components/ClockColors.tsx` (React context). Updating colors also rewrites the site accent CSS variables (`--red/--blue/--yellow` and `--red-text` for readable button text) and the browser theme-color meta tag.
@@ -63,7 +63,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 ## Design
 - Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, burgundy/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
 - Grid rules: containers are ink-colored with a 3px gap; cells are paper-colored, so gaps read as black lines.
-- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell at min 156vh (90vh on phones) so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
+- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell at min 130vh (75vh on phones) so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
 - Owner preferences: color should be dwarfed by paper/ink; amount of color red > blue > yellow; avoid busy UI.
 
 ## Roadmap

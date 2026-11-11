@@ -9,8 +9,8 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Canvas, ThreeEvent } from "@react-three/fiber";
-import { Bounds, Center, OrbitControls, useBounds, useGLTF } from "@react-three/drei";
+import { Canvas, ThreeEvent, useThree } from "@react-three/fiber";
+import { Center, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { ZONES, ZoneId, zoneForPart } from "@/data/zones";
 import { DESIGN_MODE, nameFor } from "@/lib/colors";
@@ -23,6 +23,7 @@ const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
 const EDGE_ANGLE = 30; // degrees; lower = more outlines, higher = only the sharpest edges
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: "#111111" });
 const HOVER_GLOW = 0.15; // how much a hovered color group lights up
+const FIT_MARGIN = 1.15; // 1 = clock exactly fills the viewer; bigger = more space around it
 
 type ModelProps = {
   colors: Colors;
@@ -106,7 +107,8 @@ export default function ClockViewer() {
   const { colors } = useClockColors();
   const wrapper = useRef<HTMLDivElement>(null);
 
-  // Each click of "Reset view" bumps this number, which tells ResetView to re-frame the clock.
+  // Each click of "Reset view" bumps this number, which tells FitCamera to re-frame the clock.
+  const clockRef = useRef<THREE.Group>(null);
   const [resetCount, setResetCount] = useState(0);
 
   // "Click / tap to explore": until you click or tap the clock, scrolling (wheel or finger)
@@ -161,7 +163,11 @@ export default function ClockViewer() {
     <div
       ref={wrapper}
       className={active ? undefined : styles.idle}
-      style={{ position: "relative", height: "100%", cursor: hovered ? "pointer" : "grab" }}
+      style={{
+        position: "relative",
+        height: "100%",
+        cursor: hovered ? "pointer" : "grab",
+      }}
       onPointerDown={() => setActive(true)}
       onPointerLeave={(e) => {
         setHovered(null);
@@ -176,24 +182,22 @@ export default function ClockViewer() {
 
         {/* Suspense shows nothing until the model has downloaded */}
         <Suspense fallback={null}>
-          {/* Bounds moves the camera so the whole clock fits; Center puts it in the middle */}
-          <Bounds fit clip observe margin={1.05}>
-            <Center>
-              {/* Onshape exports with Z pointing up; three.js uses Y as up, so stand the clock
+          {/* Center puts the clock in the middle; FitCamera moves the camera so it fills the view */}
+          <Center>
+            {/* Onshape exports with Z pointing up; three.js uses Y as up, so stand the clock
                 upright (inner group), then turn it around so the face is toward us (outer group) */}
-              <group rotation={[0, Math.PI, 0]}>
-                <group rotation={[-Math.PI / 2, 0, 0]}>
-                  <ClockModel
-                    colors={colors}
-                    hovered={hovered}
-                    onHover={setHovered}
-                    onPick={openPicker}
-                  />
-                </group>
+            <group ref={clockRef} rotation={[0, Math.PI, 0]}>
+              <group rotation={[-Math.PI / 2, 0, 0]}>
+                <ClockModel
+                  colors={colors}
+                  hovered={hovered}
+                  onHover={setHovered}
+                  onPick={openPicker}
+                />
               </group>
-            </Center>
-            <ResetView signal={resetCount} />
-          </Bounds>
+            </group>
+          </Center>
+          <FitCamera target={clockRef} signal={resetCount} />
         </Suspense>
 
         {/* Onshape-style controls: scroll zooms toward the cursor, left/right-drag rotates,
@@ -202,7 +206,9 @@ export default function ClockViewer() {
           makeDefault
           zoomToCursor
           enableZoom={active}
-          enableRotate={active || !touch} /* phones: one finger scrolls the page until tapped */
+          enableRotate={
+            active || !touch
+          } /* phones: one finger scrolls the page until tapped */
           minDistance={0.05}
           maxDistance={2.5}
           mouseButtons={{
@@ -221,7 +227,10 @@ export default function ClockViewer() {
             {copied ? "Copied" : "Copy colors"}
           </button>
         )}
-        <button onClick={() => setResetCount((n) => n + 1)} className={`${styles.tool} label`}>
+        <button
+          onClick={() => setResetCount((n) => n + 1)}
+          className={`${styles.tool} label`}
+        >
           Reset view
         </button>
       </div>
@@ -253,12 +262,46 @@ function useIsTouchDevice() {
   );
 }
 
-// Lives inside <Bounds> so it can ask Bounds to smoothly re-frame the whole clock.
-function ResetView({ signal }: { signal: number }) {
-  const bounds = useBounds();
+// Points the camera straight at the clock's face, from just far enough away that the clock's
+// real height AND width both fit (whichever is the tighter limit), plus FIT_MARGIN.
+// Runs when the model appears, when the viewer is resized, and on "Reset view".
+type Controls = { target: THREE.Vector3; update: () => void } | null;
+function FitCamera({
+  target,
+  signal,
+}: {
+  target: React.RefObject<THREE.Group | null>;
+  signal: number;
+}) {
+  // We re-run when the viewer size or controls change, and read the live camera with get()
+  // at the moment we move it (react-three-fiber's recommended way to change the camera).
+  const size = useThree((s) => s.size);
+  const controls = useThree((s) => s.controls);
+  const get = useThree((s) => s.get);
+
   useEffect(() => {
-    if (signal > 0) bounds.refresh().clip().fit();
-  }, [signal, bounds]);
+    const camera = get().camera;
+    if (!target.current || !(camera instanceof THREE.PerspectiveCamera)) return;
+    const box = new THREE.Box3().setFromObject(target.current);
+    const dims = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+    // How much the camera sees per meter of distance (from its field of view)
+    const view = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const aspect = size.width / size.height;
+    const fitHeight = dims.y / 2 / view;
+    const fitWidth = dims.x / 2 / (view * aspect);
+    const distance = FIT_MARGIN * Math.max(fitHeight, fitWidth) + dims.z / 2;
+
+    camera.position.set(center.x, center.y, center.z + distance);
+    camera.near = distance / 100;
+    camera.far = distance * 100;
+    camera.updateProjectionMatrix();
+    const orbit = get().controls as unknown as Controls;
+    orbit?.target.copy(center);
+    orbit?.update();
+  }, [get, size, controls, target, signal]);
+
   return null;
 }
 
