@@ -18,6 +18,7 @@
 /* Small yellow square: the least-used of the three accent colors */
 .header > .square {
   background: var(--yellow);
+  transition: background-color 0.4s;
 }
 
 .wordmark {
@@ -37,7 +38,8 @@
 
 .header > .cta {
   background: var(--red);
-  color: var(--paper);
+  color: var(--red-text);
+  transition: background-color 0.4s;
 }
 
 .cta:hover {

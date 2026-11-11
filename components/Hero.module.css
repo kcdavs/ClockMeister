@@ -49,7 +49,8 @@
 .button {
   align-self: flex-start;
   background: var(--red);
-  color: var(--paper);
+  color: var(--red-text); /* light or dark, whichever reads on the current accent */
+  transition: background-color 0.4s;
   padding: var(--space-2) var(--space-3);
 }
 
@@ -66,10 +67,12 @@
 
 .hero > .block {
   background: var(--red);
+  transition: background-color 0.4s;
 }
 
 .hero > .blueBlock {
   background: var(--blue);
+  transition: background-color 0.4s;
 }
 
 .window {

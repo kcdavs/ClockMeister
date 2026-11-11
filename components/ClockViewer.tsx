@@ -10,18 +10,15 @@ import {
   useGLTF,
 } from "@react-three/drei";
 import * as THREE from "three";
-import { ZONES, ZoneId, zoneForPart } from "@/data/zones";
+import { ZoneId, zoneForPart } from "@/data/zones";
+import { Colors, useClockColors } from "./ClockColors";
+import ColorPresets from "./ColorPresets";
 import styles from "./ClockViewer.module.css";
 
 const MODEL_URL = "/models/clock.glb";
 const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
 const EDGE_ANGLE = 30; // degrees; lower = more outlines, higher = only the sharpest edges
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: "#111111" });
-
-type Colors = Partial<Record<ZoneId, string>>;
-const DEFAULT_COLORS = Object.fromEntries(
-  ZONES.map((z) => [z.id, z.color]),
-) as Colors;
 
 // Loads the model once, gives every part its own material, and tags it with its zone.
 function ClockModel({ colors }: { colors: Colors }) {
@@ -70,11 +67,10 @@ function ClockModel({ colors }: { colors: Colors }) {
   return <primitive object={model} />;
 }
 
-export default function ClockViewer({
-  colors = DEFAULT_COLORS,
-}: {
-  colors?: Colors;
-}) {
+export default function ClockViewer() {
+  // The current colors come from the shared store (ClockColors.tsx)
+  const { colors } = useClockColors();
+
   // Each click of "Reset view" bumps this number, which tells ResetView to re-frame the clock.
   const [resetCount, setResetCount] = useState(0);
 
@@ -133,6 +129,7 @@ export default function ClockViewer({
       >
         Reset view
       </button>
+      <ColorPresets />
       <p className={`${styles.hint} label`}>
         {active
           ? "Scroll to zoom · Drag to rotate · Shift + drag to pan"

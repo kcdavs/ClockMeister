@@ -6,9 +6,11 @@
      Amount of color on the page: red > blue > yellow, all small next to paper and ink. */
   --paper: #f2ede3;
   --ink: #141414;
-  --red: #9b1c2e; /* burgundy */
-  --yellow: #f2b705;
-  --blue: #1f4fa3;
+  /* These three follow the clock's colors (see components/ClockColors.tsx) */
+  --red: #9b1c2e; /* burgundy, follows the wheels */
+  --yellow: #f2b705; /* follows the face */
+  --blue: #1f4fa3; /* follows the escapement */
+  --red-text: var(--paper); /* text color on top of --red; flips to ink on light colors */
   --muted: #6b665d;
 
   /* Type: fonts are loaded in app/layout.tsx and exposed as these variables */

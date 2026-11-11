@@ -1,5 +1,9 @@
 // Color zones: groups of clock parts that the customer colors together.
-// Defaults are the colors used in Onshape. Stage 6 swaps these for real filament colors.
+// Default colors match the site palette so the default clock and the site agree.
+// Stage 6 swaps these for real filament colors.
+//
+// `accent` links a zone to a site color variable: when the customer recolors that zone,
+// the matching blocks, buttons and browser toolbar on the site recolor too.
 
 export type ZoneId =
   | "face"
@@ -12,12 +16,19 @@ export type ZoneId =
   | "accents"
   | "fixed";
 
-export const ZONES: { id: ZoneId; label: string; color: string }[] = [
-  { id: "face", label: "Face / front frame", color: "#fab601" },
+export type Accent = "--red" | "--blue" | "--yellow";
+
+export const ZONES: {
+  id: ZoneId;
+  label: string;
+  color: string;
+  accent?: Accent;
+}[] = [
+  { id: "face", label: "Face / front frame", color: "#f2b705", accent: "--yellow" },
   { id: "numerals", label: "Numerals", color: "#111111" },
   { id: "hands", label: "Hands", color: "#111111" },
-  { id: "wheels", label: "Wheels", color: "#800000" },
-  { id: "escapement", label: "Escapement", color: "#0798ef" },
+  { id: "wheels", label: "Wheels", color: "#9b1c2e", accent: "--red" },
+  { id: "escapement", label: "Escapement", color: "#1f4fa3", accent: "--blue" },
   { id: "plates", label: "Plates & motion works", color: "#eaeaea" },
   { id: "pendant", label: "Pendant", color: "#9dcfed" },
   { id: "accents", label: "Small gray parts", color: "#a5a5a5" },
