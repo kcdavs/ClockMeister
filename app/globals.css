@@ -1,0 +1,13 @@
+/* Styles that apply to the whole site. The Bauhaus design system goes here in Stage 3. */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f1ea;
+  color: #111;
+}
