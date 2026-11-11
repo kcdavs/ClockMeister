@@ -33,39 +33,49 @@ The owner is learning web development through this project (background: data ana
 Source: Onshape "Right Assembly" (the whole clock; a mirrored left version exists but isn't used). 93 parts, ~311k triangles, 9 Onshape colors.
 Optimization took it from 27.7 MB / 11,261 draw pieces to 2.0 MB / 93 pieces, no detail lost.
 
-Proposed color zones (to become a data file mapping part name → zone, Stage 5/6):
-- Face / front frame: Part 3 (yellow; multi-color print with the numerals)
-- Numerals: the 72 small black "Part N" segments — must contrast with the face
+Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 12 selectable zones + fixed:
+- Face: Part 3 (multi-color print with the numerals) — drives site accent `--yellow`
+- Numerals: the 72 small "Part N" segments — must contrast with the face (warning shown)
 - Hands: Hour Hand, Minute Hand
-- Wheels: 2nd/3rd/4th Wheel, Part 4 (maroon)
-- Escapement: Mirror Esc Wheel, Mirror Esc Pallet (blue)
-- Plates & motion works: Mirror Front/Back, Motion Works, Hour Wheel (white), Minute Arbor
-- Pendant: Pendant, Spur gear (9 teeth) (light blue)
-- Small gray parts: Hour Wheel (gray), Part 2 — may fold into another zone
+- Main wheel: Part 4 (the large first wheel of the train)
+- Wheels: 2nd/3rd/4th Wheel — drives site accent `--red` (burgundy)
+- Escapement: Mirror Esc Wheel, Mirror Esc Pallet — drives site accent `--blue`
+- Front frame: Mirror Front; Rear frame: Mirror Back
+- Motion works: Motion Works, Hour Wheel (white), Minute Arbor
+- Pendulum: Pendant; Ratchet: Spur gear (9 teeth) (owner to confirm ratchet guess)
+- Small gray parts: Hour Wheel (gray), Part 2 (owner to confirm where these belong)
 - Fixed (not selectable): M3 screws, Pendulm Rod
 Known issue: two parts are both named "Hour Wheel" (white and gray). Rename the gray one in Onshape on next export; until then distinguish by material color.
+Test the mapping without a browser: a Node script loading the GLB with three's GLTFLoader + MeshoptDecoder and running `zoneForPart` on every mesh (Node 25 imports .ts directly).
 
-## 3D viewer
-- `components/ClockViewer.tsx` (client component): loads the GLB with drei `useGLTF` (meshopt supported), assigns each mesh a zone via `zoneForPart()`, repaints from a `colors` prop, outlines edges with `EdgesGeometry` (EDGE_ANGLE = 30°, ~151k segments, ~0.3 s to compute).
+## 3D viewer and configurator
+- `components/ClockViewer.tsx` (client component): loads the GLB with drei `useGLTF`, tags each mesh with its zone, repaints from the shared color store, outlines edges with `EdgesGeometry` (EDGE_ANGLE = 30°, ~151k segments, ~0.3 s; outlines have raycast disabled so clicks hit parts).
 - Orientation: Onshape exports Z-up; the model is rotated -90° about X, then 180° about Y so the face points at the camera.
-- Controls mirror Onshape: scroll zooms toward the cursor; left/right-drag rotate; middle-drag or Shift+drag pan; "Reset view" button re-fits via drei `useBounds`. Zoom limits 0.05–2.5 m.
-- Tradeoff accepted: scrolling over the viewer zooms rather than scrolling the page, so the layout must never let the viewer fill the whole screen.
+- Controls mirror Onshape: scroll zooms toward the cursor; left/right-drag rotate; middle-drag or Shift+drag pan; "Reset view" re-fits via drei `useBounds`. Zoom limits 0.05–2.5 m.
+- "Click / tap to explore": zoom (and on touch devices, rotation) is off until the visitor clicks/taps the clock, so the page scrolls over it. Mouse: ends on pointer leave. Touch: ends on a tap outside. `.idle canvas { touch-action: pan-y }` lets fingers scroll the page.
+- Configurator = click a part: hover glows the whole zone, click (not drag; `e.delta > 4` = drag) opens `components/PartPicker.tsx` with filament swatches. On narrow screens (<560px) the picker is a full-width bottom sheet.
+- Shared color store: `components/ClockColors.tsx` (React context). Updating colors also rewrites the site accent CSS variables (`--red/--blue/--yellow` and `--red-text` for readable button text) and the browser theme-color meta tag.
+- Filaments: `data/filaments.json` (id, name, hex) — currently a PLACEHOLDER list; replace with the owner's real spools.
+- Design mode (`npm run dev` only, via `DESIGN_MODE` in `lib/colors.ts`): free color picker in each popup and a "Copy colors" button. Hidden in production.
 - Unmapped parts render magenta (`#ff00ff`) and log a console warning.
-- To do: phone touch: a finger on the canvas rotates, so leave scrollable margin around it. Check edge-line performance on phones after deploying.
-- Future idea: exploded view (slide parts apart front-to-back with a slider/animation) to demystify the mechanism.
+- Future ideas: exploded view animation (also as hero background); Santos-inspired line illustration revealed through the empty sidebar "window" cell with a fixed-background effect (must work on iOS, so not plain `background-attachment: fixed`).
+
+## Design
+- Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, burgundy/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
+- Grid rules: containers are ink-colored with a 3px gap; cells are paper-colored, so gaps read as black lines.
+- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell at min 130vh so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
+- Owner preferences: color should be dwarfed by paper/ink; amount of color red > blue > yellow; avoid busy UI.
 
 ## Roadmap
 1. ✅ Tools and repo (Node v25, npm, git; repo cloned to ~/clock-website)
 2. ✅ Next.js skeleton, README, CLAUDE.md, first commit, first push
-   ✅ Real model optimized early (was Stage 9)
-   ✅ 3D viewer (was Stage 5): `components/ClockViewer.tsx` + `data/zones.ts`
-3. Design system + hero (design around the clock)
+3. ✅ Design system, header, hero
 4. Content sections (how it works, specs, FAQ, shipping)
-5. (done early — see above)
-6. Configurator (filaments.json, per-zone colors, live price, numeral/face contrast check)
-7. Deploy to Vercel
+5. ✅ 3D viewer with the real model
+6. ✅ Configurator (click a part → filament swatches; site colors follow the clock). To do: real filament list, final default colors.
+7. Deploy to Vercel (in progress) — phone touch handling done
 8. Stripe Checkout + serverless function + success page
-9. Polish and launch
+9. Polish and launch (exploded view, Santos window illustration, performance on phones)
 
 ## Routine tasks
 - Run locally: `npm run dev` → http://localhost:3000

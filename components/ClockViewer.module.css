@@ -21,6 +21,12 @@
   color: var(--paper);
 }
 
+/* Before the visitor taps the clock, a finger swipe over it scrolls the page.
+   (The 3D controls normally claim all touches; !important overrides that.) */
+.idle canvas {
+  touch-action: pan-y !important;
+}
+
 /* At the top, because the viewer can be taller than the screen */
 .hint {
   position: absolute;
@@ -28,4 +34,15 @@
   left: var(--space-3);
   color: var(--muted);
   pointer-events: none; /* clicks pass through to the canvas */
+}
+
+/* Phones: hint at the bottom so it doesn't collide with the buttons */
+@media (max-width: 560px) {
+  .hint {
+    top: auto;
+    bottom: var(--space-2);
+    left: 0;
+    width: 100%;
+    text-align: center;
+  }
 }

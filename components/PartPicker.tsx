@@ -11,9 +11,10 @@ import styles from "./PartPicker.module.css";
 
 export const PICKER_WIDTH = 236; // px; the viewer uses this to keep the popup on screen
 
-type Props = { zone: ZoneId; x: number; y: number; onClose: () => void };
+// sheet = phone layout: a full-width panel along the bottom of the viewer
+type Props = { zone: ZoneId; x: number; y: number; sheet: boolean; onClose: () => void };
 
-export default function PartPicker({ zone, x, y, onClose }: Props) {
+export default function PartPicker({ zone, x, y, sheet, onClose }: Props) {
   const { colors, setColors } = useClockColors();
   const label = ZONES.find((z) => z.id === zone)?.label;
   const current = colors[zone];
@@ -29,7 +30,10 @@ export default function PartPicker({ zone, x, y, onClose }: Props) {
     (zone === "numerals" || zone === "face") && contrast(colors.numerals, colors.face) < 0.25;
 
   return (
-    <div className={styles.picker} style={{ left: x, top: y, width: PICKER_WIDTH }}>
+    <div
+      className={`${styles.picker} ${sheet ? styles.sheet : ""}`}
+      style={sheet ? undefined : { left: x, top: y, width: PICKER_WIDTH }}
+    >
       <div className={styles.header}>
         <div>
           <div className={styles.title}>{label}</div>

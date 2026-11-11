@@ -9,10 +9,14 @@ export type ZoneId =
   | "face"
   | "numerals"
   | "hands"
+  | "mainWheel"
   | "wheels"
   | "escapement"
-  | "plates"
-  | "pendant"
+  | "frontFrame"
+  | "rearFrame"
+  | "motionWorks"
+  | "pendulum"
+  | "ratchet"
   | "accents"
   | "fixed";
 
@@ -24,13 +28,17 @@ export const ZONES: {
   color: string;
   accent?: Accent;
 }[] = [
-  { id: "face", label: "Face / front frame", color: "#f2b705", accent: "--yellow" },
+  { id: "face", label: "Face", color: "#f2b705", accent: "--yellow" },
   { id: "numerals", label: "Numerals", color: "#111111" },
   { id: "hands", label: "Hands", color: "#111111" },
+  { id: "mainWheel", label: "Main wheel", color: "#9b1c2e" },
   { id: "wheels", label: "Wheels", color: "#9b1c2e", accent: "--red" },
   { id: "escapement", label: "Escapement", color: "#1f4fa3", accent: "--blue" },
-  { id: "plates", label: "Plates & motion works", color: "#eaeaea" },
-  { id: "pendant", label: "Pendant", color: "#9dcfed" },
+  { id: "frontFrame", label: "Front frame", color: "#eaeaea" },
+  { id: "rearFrame", label: "Rear frame", color: "#eaeaea" },
+  { id: "motionWorks", label: "Motion works", color: "#eaeaea" },
+  { id: "pendulum", label: "Pendulum", color: "#9dcfed" },
+  { id: "ratchet", label: "Ratchet", color: "#9dcfed" },
   { id: "accents", label: "Small gray parts", color: "#a5a5a5" },
   { id: "fixed", label: "Hardware (not selectable)", color: "#9aa5af" },
 ];
@@ -43,16 +51,19 @@ export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
   const name = rawName.replace(/_/g, " ");
 
   if (name === "Part 3") return "face";
-  if (name === "Part 4") return "wheels";
+  if (name === "Part 4") return "mainWheel"; // the large first wheel of the train
   if (name === "Part 2") return "accents";
   if (/^Part \d+$/.test(name)) return "numerals"; // all other unnamed parts are numeral segments
 
   if (/^(2nd|3rd|4th) Wheel/.test(name)) return "wheels";
   if (name.startsWith("Mirror Esc")) return "escapement";
   if (name.startsWith("Hour Hand") || name.startsWith("Minute Hand")) return "hands";
-  if (name.startsWith("Hour Wheel")) return isGray ? "accents" : "plates";
-  if (/^(Mirror Front|Mirror Back|Motion Works|Minute Arbor)/.test(name)) return "plates";
-  if (name.startsWith("Pendant") || name.startsWith("Spur gear")) return "pendant";
+  if (name.startsWith("Hour Wheel")) return isGray ? "accents" : "motionWorks";
+  if (/^(Motion Works|Minute Arbor)/.test(name)) return "motionWorks";
+  if (name.startsWith("Mirror Front")) return "frontFrame";
+  if (name.startsWith("Mirror Back")) return "rearFrame";
+  if (name.startsWith("Pendant")) return "pendulum";
+  if (name.startsWith("Spur gear")) return "ratchet";
   if (name.startsWith("Hex socket") || name.startsWith("Pendulm Rod")) return "fixed";
 
   return null; // unknown part: the viewer paints it magenta so it's easy to spot

@@ -1,6 +1,14 @@
 "use client"; // runs in the browser (3D needs the visitor's graphics card), not on the server
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Canvas, ThreeEvent } from "@react-three/fiber";
 import { Bounds, Center, OrbitControls, useBounds, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -101,20 +109,39 @@ export default function ClockViewer() {
   // Each click of "Reset view" bumps this number, which tells ResetView to re-frame the clock.
   const [resetCount, setResetCount] = useState(0);
 
-  // "Click to explore": until you click the clock, the scroll wheel scrolls the page.
-  // After a click, scrolling zooms the clock, until the mouse leaves the viewer.
+  // "Click / tap to explore": until you click or tap the clock, scrolling (wheel or finger)
+  // moves the page. After that, scrolling zooms and one finger rotates. With a mouse it ends
+  // when the mouse leaves the viewer; on a phone, when you tap anywhere outside the clock.
   const [active, setActive] = useState(false);
+  const touch = useIsTouchDevice();
+
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      if (!wrapper.current?.contains(e.target as Node)) setActive(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, []);
 
   // Which color group the mouse is over, and which one has its popup open (and where).
   const [hovered, setHovered] = useState<ZoneId | null>(null);
-  const [picked, setPicked] = useState<{ zone: ZoneId; x: number; y: number } | null>(null);
+  const [picked, setPicked] = useState<{
+    zone: ZoneId;
+    x: number;
+    y: number;
+    sheet: boolean;
+  } | null>(null);
   const closePicker = useCallback(() => setPicked(null), []);
 
   // Open the popup just below-right of the click, flipped left if it would run off the edge.
+  // On narrow screens (phones) it becomes a full-width panel along the bottom instead.
   function openPicker(zone: ZoneId, x: number, y: number) {
     const width = wrapper.current?.clientWidth ?? 0;
+    const height = wrapper.current?.clientHeight ?? 0;
+    const sheet = width < 560;
     const left = x + 16 + PICKER_WIDTH > width ? x - 16 - PICKER_WIDTH : x + 16;
-    setPicked({ zone, x: Math.max(8, left), y: y + 16 });
+    const top = Math.min(y + 16, height - 260); // keep it from running off the bottom
+    setPicked({ zone, x: Math.max(8, left), y: Math.max(8, top), sheet });
   }
 
   const [copied, setCopied] = useState(false);
@@ -133,11 +160,12 @@ export default function ClockViewer() {
   return (
     <div
       ref={wrapper}
+      className={active ? undefined : styles.idle}
       style={{ position: "relative", height: "100%", cursor: hovered ? "pointer" : "grab" }}
       onPointerDown={() => setActive(true)}
-      onPointerLeave={() => {
-        setActive(false);
+      onPointerLeave={(e) => {
         setHovered(null);
+        if (e.pointerType === "mouse") setActive(false); // fingers "leave" after every tap
       }}
     >
       <Canvas camera={{ fov: 35 }} dpr={[1, 2]} onPointerMissed={closePicker}>
@@ -174,6 +202,7 @@ export default function ClockViewer() {
           makeDefault
           zoomToCursor
           enableZoom={active}
+          enableRotate={active || !touch} /* phones: one finger scrolls the page until tapped */
           minDistance={0.05}
           maxDistance={2.5}
           mouseButtons={{
@@ -197,11 +226,30 @@ export default function ClockViewer() {
         </button>
       </div>
       <p className={`${styles.hint} label`}>
-        {active
-          ? "Click a part to recolor · Scroll to zoom · Drag to rotate"
-          : "Click any part to change its color"}
+        {touch
+          ? active
+            ? "Tap a part to recolor · Drag to rotate · Pinch to zoom"
+            : "Tap the clock to explore"
+          : active
+            ? "Click a part to recolor · Scroll to zoom · Drag to rotate"
+            : "Click any part to change its color"}
       </p>
     </div>
+  );
+}
+
+// True on phones/tablets (a "coarse" pointer = finger). useSyncExternalStore is React's way
+// to read a browser setting; on the server (no browser) it assumes a mouse.
+const COARSE = "(pointer: coarse)";
+function useIsTouchDevice() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const query = window.matchMedia(COARSE);
+      query.addEventListener("change", onChange);
+      return () => query.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(COARSE).matches,
+    () => false,
   );
 }
 
