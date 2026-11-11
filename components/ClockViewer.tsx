@@ -11,6 +11,7 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { ZONES, ZoneId, zoneForPart } from "@/data/zones";
+import styles from "./ClockViewer.module.css";
 
 const MODEL_URL = "/models/clock.glb";
 const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
@@ -77,8 +78,16 @@ export default function ClockViewer({
   // Each click of "Reset view" bumps this number, which tells ResetView to re-frame the clock.
   const [resetCount, setResetCount] = useState(0);
 
+  // "Click to explore": until you click the clock, the scroll wheel scrolls the page.
+  // After a click, scrolling zooms the clock, until the mouse leaves the viewer.
+  const [active, setActive] = useState(false);
+
   return (
-    <div style={{ position: "relative", height: "100%" }}>
+    <div
+      style={{ position: "relative", height: "100%" }}
+      onPointerDown={() => setActive(true)}
+      onPointerLeave={() => setActive(false)}
+    >
       <Canvas camera={{ fov: 35 }} dpr={[1, 2]}>
         {/* Soft overall light plus two directional "lamps" so the gear teeth read clearly */}
         <ambientLight intensity={0.8} />
@@ -88,7 +97,7 @@ export default function ClockViewer({
         {/* Suspense shows nothing until the model has downloaded */}
         <Suspense fallback={null}>
           {/* Bounds moves the camera so the whole clock fits; Center puts it in the middle */}
-          <Bounds fit clip observe margin={1.15}>
+          <Bounds fit clip observe margin={1.05}>
             <Center>
               {/* Onshape exports with Z pointing up; three.js uses Y as up, so stand the clock
                 upright (inner group), then turn it around so the face is toward us (outer group) */}
@@ -107,6 +116,7 @@ export default function ClockViewer({
         <OrbitControls
           makeDefault
           zoomToCursor
+          enableZoom={active}
           minDistance={0.05}
           maxDistance={2.5}
           mouseButtons={{
@@ -119,22 +129,14 @@ export default function ClockViewer({
 
       <button
         onClick={() => setResetCount((n) => n + 1)}
-        style={{ position: "absolute", top: "1rem", right: "1rem" }}
+        className={`${styles.reset} label`}
       >
         Reset view
       </button>
-      <p
-        style={{
-          position: "absolute",
-          bottom: "1rem",
-          width: "100%",
-          textAlign: "center",
-          fontSize: "0.8rem",
-          opacity: 0.6,
-          pointerEvents: "none",
-        }}
-      >
-        Drag to rotate · Scroll to zoom · Middle-drag or Shift + drag to pan
+      <p className={`${styles.hint} label`}>
+        {active
+          ? "Scroll to zoom · Drag to rotate · Shift + drag to pan"
+          : "Click the clock to explore"}
       </p>
     </div>
   );

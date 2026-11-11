@@ -1,0 +1,114 @@
+/* Desktop layout: a ~38% sidebar (three sub-columns) and a ~62% clock column.
+     ┌──────────────────────┬──────────────────────────┐
+     │ intro                │                          │
+     ├──────────────────────┤                          │
+     │ specs                │  viewer                  │
+     ├──────────────────────┤  (all rows, taller       │
+     │ window (fills        │   than the screen)       │
+     │ remaining space)     │                          │
+     ├──────┬────┬──────────┤                          │
+     │ red  │blue│ (empty)  │                          │
+     └──────┴────┴──────────┴──────────────────────────┘
+   Same rule trick as the header: ink background + gaps = black lines. */
+.hero {
+  display: grid;
+  grid-template-columns: 2fr 1fr 3fr 10fr; /* red, blue, empty = 6/16 ≈ 38% sidebar; clock = 10/16 ≈ 62% */
+  grid-template-rows: auto auto 1fr 3rem; /* 3rem = height of the color-block row, at the bottom */
+  gap: var(--rule);
+  background: var(--ink);
+  border-bottom: var(--rule) solid var(--ink);
+}
+
+.hero > * {
+  background: var(--paper);
+}
+
+.intro {
+  grid-column: 1 / 4;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: clamp(2.25rem, 3.8vw, 4rem); /* scales with screen width, within limits */
+  max-width: 12ch;
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  max-width: 34ch;
+  color: var(--muted);
+}
+
+.button {
+  align-self: flex-start;
+  background: var(--red);
+  color: var(--paper);
+  padding: var(--space-2) var(--space-3);
+}
+
+.button:hover {
+  background: var(--ink);
+}
+
+.specs {
+  grid-column: 1 / 4;
+  list-style: none;
+  padding: var(--space-2) var(--space-3);
+  line-height: 2;
+}
+
+.hero > .block {
+  background: var(--red);
+}
+
+.hero > .blueBlock {
+  background: var(--blue);
+}
+
+.window {
+  grid-column: 1 / 4;
+}
+
+/* Taller than the screen: the face and gears fill the first view,
+   and scrolling down reveals the pendulum. */
+.viewer {
+  grid-column: 4;
+  grid-row: 1 / -1;
+  height: 130vh;
+}
+
+/* Phones and narrow windows: stack everything in one column */
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 2fr 1fr 3fr;
+    grid-template-rows: auto;
+  }
+  .intro,
+  .specs,
+  .viewer {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .viewer {
+    order: -1; /* show the clock right after the headline... */
+    height: 90vh;
+  }
+  .intro {
+    order: -2; /* ...which comes first */
+  }
+  .hero > .block,
+  .hero > .blueBlock,
+  .hero > .spacer {
+    height: 3rem;
+  }
+  .window {
+    display: none;
+  }
+}

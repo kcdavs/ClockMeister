@@ -1,4 +1,28 @@
-/* Styles that apply to the whole site. The Bauhaus design system goes here in Stage 3. */
+/* Site-wide styles and design tokens.
+   Tokens are CSS variables: define a value once here, reuse it everywhere with var(--name). */
+
+:root {
+  /* Palette: warm paper, near-black ink, and three Bauhaus primaries used deliberately.
+     Amount of color on the page: red > blue > yellow, all small next to paper and ink. */
+  --paper: #f2ede3;
+  --ink: #141414;
+  --red: #9b1c2e; /* burgundy */
+  --yellow: #f2b705;
+  --blue: #1f4fa3;
+  --muted: #6b665d;
+
+  /* Type: fonts are loaded in app/layout.tsx and exposed as these variables */
+  --font-sans: var(--font-jost), "Futura", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+
+  /* Lines and spacing */
+  --rule: 3px; /* thickness of the black grid lines */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+}
 
 * {
   box-sizing: border-box;
@@ -7,7 +31,21 @@
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f4f1ea;
-  color: #111;
+  font-family: var(--font-sans);
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Small uppercase monospaced labels (specs, eyebrows, nav) */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
