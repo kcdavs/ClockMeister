@@ -63,7 +63,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 ## Design
 - Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, burgundy/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
 - Grid rules: containers are ink-colored with a 3px gap; cells are paper-colored, so gaps read as black lines.
-- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell at min 130vh so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
+- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell at min 156vh (90vh on phones) so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
 - Owner preferences: color should be dwarfed by paper/ink; amount of color red > blue > yellow; avoid busy UI.
 
 ## Roadmap
@@ -85,5 +85,6 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - Push: `git push` (GitHub token is stored in macOS Keychain)
 
 ## Notes
+- Live site: https://clock-meister.vercel.app (Vercel Hobby plan; auto-deploys on every push to main). Owner wants clockmeister.design (clockmeister.com is taken); purchase pending.
 - Commit author is set per-repo: kcdavs / GitHub noreply address.
 - `npm audit` reports 7 moderate issues in dev-only tooling (eslint's dependencies); not shipped to the site.
