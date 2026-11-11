@@ -79,12 +79,13 @@
   grid-column: 1 / 4;
 }
 
-/* Taller than the screen: the face and gears fill the first view,
-   and scrolling down reveals the pendulum. */
+/* Same shape as the clock (about 0.44 wide per 1 tall, plus a little margin), so the clock
+   fills the cell's full width. The height follows from the width: on a laptop that's about
+   two screens tall, and scrolling down reveals the pendulum. */
 .viewer {
   grid-column: 4;
   grid-row: 1 / -1;
-  min-height: 156vh; /* the clock is fitted to this height: taller cell = bigger clock */
+  aspect-ratio: 0.45;
 }
 
 /* Phones and narrow windows: stack everything in one column */
@@ -101,8 +102,6 @@
   }
   .viewer {
     order: -1; /* show the clock right after the headline... */
-    min-height: 0;
-    height: 90vh;
   }
   .intro {
     order: -2; /* ...which comes first */

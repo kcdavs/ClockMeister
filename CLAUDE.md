@@ -63,7 +63,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 ## Design
 - Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, burgundy/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
 - Grid rules: containers are ink-colored with a 3px gap; cells are paper-colored, so gaps read as black lines.
-- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell at min 156vh (90vh on phones); clock size = cell height / FIT_MARGIN so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
+- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell with `aspect-ratio: 0.45` (the clock's shape) so the clock spans the full cell width; the cell is ~2 screens tall on laptops and the pendulum is revealed by scrolling. FIT_MARGIN 1.04 so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
 - Owner preferences: color should be dwarfed by paper/ink; amount of color red > blue > yellow; avoid busy UI.
 
 ## Roadmap

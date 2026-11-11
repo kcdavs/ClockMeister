@@ -23,7 +23,7 @@ const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
 const EDGE_ANGLE = 30; // degrees; lower = more outlines, higher = only the sharpest edges
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: "#111111" });
 const HOVER_GLOW = 0.15; // how much a hovered color group lights up
-const FIT_MARGIN = 1.15; // 1 = clock exactly fills the viewer; bigger = more space around it
+const FIT_MARGIN = 1.04; // 1 = clock exactly fills the viewer; bigger = more space around it
 
 type ModelProps = {
   colors: Colors;
