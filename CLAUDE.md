@@ -87,5 +87,6 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 ## Notes
 - Live site: https://www.clockmeisterclocks.com (also https://clock-meister.vercel.app; Vercel Hobby plan; auto-deploys on every push to main). The bare domain redirects to www.
 - FitCamera must depend on size.width/height only, not the whole `size` (it includes page position, which changes on scroll and would reset the view).
+- The viewer is `position: absolute` inside the `.viewer` cell (which has `position: relative; overflow: hidden`). Keep it that way: when the canvas could size the cell, Safari grew both forever (endless zoom/pan). Test Safari with Playwright WebKit, not only Chrome.
 - Commit author is set per-repo: kcdavs / GitHub noreply address.
 - `npm audit` reports 7 moderate issues in dev-only tooling (eslint's dependencies); not shipped to the site.

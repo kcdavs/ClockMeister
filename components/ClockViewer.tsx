@@ -164,8 +164,8 @@ export default function ClockViewer() {
       ref={wrapper}
       className={active ? undefined : styles.idle}
       style={{
-        position: "relative",
-        height: "100%",
+        position: "absolute", // fill the cell without affecting its size (see Hero.module.css)
+        inset: 0,
         cursor: hovered ? "pointer" : "grab",
       }}
       onPointerDown={() => setActive(true)}
