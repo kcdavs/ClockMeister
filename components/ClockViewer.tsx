@@ -285,6 +285,9 @@ function FitCamera({
   useEffect(() => {
     const camera = get().camera;
     if (!target.current || !(camera instanceof THREE.PerspectiveCamera)) return;
+    // Bring every part's on-screen position up to date first (including the centering done by
+    // <Center>); otherwise we can measure a stale position and aim the camera off to one side.
+    target.current.updateWorldMatrix(true, true);
     const box = new THREE.Box3().setFromObject(target.current);
     const dims = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
