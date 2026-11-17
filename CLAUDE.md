@@ -33,15 +33,15 @@ The owner is learning web development through this project (background: data ana
 Source: Onshape "Right Assembly" (the whole clock; a mirrored left version exists but isn't used). 93 parts, ~311k triangles, 9 Onshape colors.
 Optimization took it from 27.7 MB / 11,261 draw pieces to 2.0 MB / 93 pieces, no detail lost.
 
-Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 12 selectable zones + fixed:
+Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 15 selectable zones + fixed:
 - Face: Part 3 (multi-color print with the numerals) — drives site accent `--yellow`
 - Numerals: the 72 small "Part N" segments — must contrast with the face (warning shown)
 - Hands: Hour Hand, Minute Hand
 - Main wheel: Part 4 (the large first wheel of the train)
 - Wheels: 2nd/3rd/4th Wheel — drives site accent `--red` (burgundy)
-- Escapement: Mirror Esc Wheel, Mirror Esc Pallet — drives site accent `--blue`
+- Escape wheel: Mirror Esc Wheel — drives site accent `--blue`; Escape pallet: Mirror Esc Pallet
 - Front frame: Mirror Front; Rear frame: Mirror Back
-- Motion works: Motion Works, Hour Wheel (white), Minute Arbor
+- Motion works, each its own zone: Motion works wheel (Motion Works, 89 mm), Hour wheel (white Hour Wheel, 112 mm, behind the hands), Minute arbor (Minute Arbor, 32 mm)
 - Pendulum: Pendant; Ratchet: Spur gear (9 teeth) (owner to confirm ratchet guess)
 - Small gray parts: Hour Wheel (gray), Part 2 (owner to confirm where these belong)
 - Fixed (not selectable): M3 screws, Pendulm Rod

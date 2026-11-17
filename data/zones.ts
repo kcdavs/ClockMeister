@@ -11,10 +11,13 @@ export type ZoneId =
   | "hands"
   | "mainWheel"
   | "wheels"
-  | "escapement"
+  | "escWheel"
+  | "escPallet"
   | "frontFrame"
   | "rearFrame"
-  | "motionWorks"
+  | "motionWheel"
+  | "hourWheel"
+  | "minuteArbor"
   | "pendulum"
   | "ratchet"
   | "accents"
@@ -33,10 +36,13 @@ export const ZONES: {
   { id: "hands", label: "Hands", color: "#111111" },
   { id: "mainWheel", label: "Main wheel", color: "#9b1c2e" },
   { id: "wheels", label: "Wheels", color: "#9b1c2e", accent: "--red" },
-  { id: "escapement", label: "Escapement", color: "#1f4fa3", accent: "--blue" },
+  { id: "escWheel", label: "Escape wheel", color: "#1f4fa3", accent: "--blue" },
+  { id: "escPallet", label: "Escape pallet", color: "#1f4fa3" },
   { id: "frontFrame", label: "Front frame", color: "#eaeaea" },
   { id: "rearFrame", label: "Rear frame", color: "#eaeaea" },
-  { id: "motionWorks", label: "Motion works", color: "#eaeaea" },
+  { id: "motionWheel", label: "Motion works wheel", color: "#eaeaea" },
+  { id: "hourWheel", label: "Hour wheel", color: "#eaeaea" },
+  { id: "minuteArbor", label: "Minute arbor", color: "#eaeaea" },
   { id: "pendulum", label: "Pendulum", color: "#9dcfed" },
   { id: "ratchet", label: "Ratchet", color: "#9dcfed" },
   { id: "accents", label: "Small gray parts", color: "#a5a5a5" },
@@ -56,10 +62,12 @@ export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
   if (/^Part \d+$/.test(name)) return "numerals"; // all other unnamed parts are numeral segments
 
   if (/^(2nd|3rd|4th) Wheel/.test(name)) return "wheels";
-  if (name.startsWith("Mirror Esc")) return "escapement";
+  if (name.startsWith("Mirror Esc Wheel")) return "escWheel";
+  if (name.startsWith("Mirror Esc Pallet")) return "escPallet";
   if (name.startsWith("Hour Hand") || name.startsWith("Minute Hand")) return "hands";
-  if (name.startsWith("Hour Wheel")) return isGray ? "accents" : "motionWorks";
-  if (/^(Motion Works|Minute Arbor)/.test(name)) return "motionWorks";
+  if (name.startsWith("Hour Wheel")) return isGray ? "accents" : "hourWheel";
+  if (name.startsWith("Motion Works")) return "motionWheel";
+  if (name.startsWith("Minute Arbor")) return "minuteArbor";
   if (name.startsWith("Mirror Front")) return "frontFrame";
   if (name.startsWith("Mirror Back")) return "rearFrame";
   if (name.startsWith("Pendant")) return "pendulum";
