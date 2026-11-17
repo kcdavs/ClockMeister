@@ -85,6 +85,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - Push: `git push` (GitHub token is stored in macOS Keychain)
 
 ## Notes
-- Live site: https://clock-meister.vercel.app (Vercel Hobby plan; auto-deploys on every push to main). Owner wants clockmeister.design (clockmeister.com is taken); purchase pending.
+- Live site: https://www.clockmeisterclocks.com (also https://clock-meister.vercel.app; Vercel Hobby plan; auto-deploys on every push to main). The bare domain redirects to www.
+- FitCamera must depend on size.width/height only, not the whole `size` (it includes page position, which changes on scroll and would reset the view).
 - Commit author is set per-repo: kcdavs / GitHub noreply address.
 - `npm audit` reports 7 moderate issues in dev-only tooling (eslint's dependencies); not shipped to the site.

@@ -273,9 +273,12 @@ function FitCamera({
   target: React.RefObject<THREE.Group | null>;
   signal: number;
 }) {
-  // We re-run when the viewer size or controls change, and read the live camera with get()
-  // at the moment we move it (react-three-fiber's recommended way to change the camera).
-  const size = useThree((s) => s.size);
+  // We re-run when the viewer's width/height or controls change, and read the live camera with
+  // get() at the moment we move it (react-three-fiber's recommended way to change the camera).
+  // Only width and height on purpose: the full `size` also holds the canvas's position on the
+  // page, which changes on every scroll — depending on it snapped the view back while scrolling.
+  const width = useThree((s) => s.size.width);
+  const height = useThree((s) => s.size.height);
   const controls = useThree((s) => s.controls);
   const get = useThree((s) => s.get);
 
@@ -288,7 +291,7 @@ function FitCamera({
 
     // How much the camera sees per meter of distance (from its field of view)
     const view = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const aspect = size.width / size.height;
+    const aspect = width / height;
     const fitHeight = dims.y / 2 / view;
     const fitWidth = dims.x / 2 / (view * aspect);
     const distance = FIT_MARGIN * Math.max(fitHeight, fitWidth) + dims.z / 2;
@@ -300,7 +303,7 @@ function FitCamera({
     const orbit = get().controls as unknown as Controls;
     orbit?.target.copy(center);
     orbit?.update();
-  }, [get, size, controls, target, signal]);
+  }, [get, width, height, controls, target, signal]);
 
   return null;
 }
