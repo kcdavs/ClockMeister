@@ -1,4 +1,4 @@
-/* Shared layout for the home page's content sections (How it works, Specs, FAQ).
+/* Shared layout for the content sections (home page "Before you buy", the How it works page).
    Each section is a row of the same black-rule grid as the hero:
      ┌──────────────┬──────────────────────────────┐
      │ 01           │ content                      │
@@ -12,7 +12,7 @@
   gap: var(--rule);
   background: var(--ink);
   border-bottom: var(--rule) solid var(--ink);
-  scroll-margin-top: 4rem; /* header links (/#how) stop just below the top bar */
+  scroll-margin-top: 4rem; /* header links (/#details) stop just below the top bar */
 }
 
 .section > * {
@@ -38,6 +38,25 @@
   color: var(--muted);
   line-height: 1.5;
   max-width: 30ch;
+}
+
+/* Small links under a heading ("How it works →") */
+.more {
+  margin-top: var(--space-1);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.more:hover,
+.link:hover {
+  color: var(--red);
+}
+
+/* A link inside body text (the install video) */
+.link {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  white-space: nowrap;
 }
 
 .body {
@@ -85,7 +104,7 @@
   max-width: 46ch;
 }
 
-/* Specs and FAQ: rows separated by thin ink lines */
+/* Before you buy: rows separated by thin ink lines */
 .rows {
   list-style: none;
   border-top: 2px solid var(--ink);
@@ -98,42 +117,6 @@
   padding: 0.85rem 0;
   border-bottom: 1px solid var(--ink);
   line-height: 1.5;
-}
-
-/* FAQ: <details> opens and closes without any JavaScript */
-.question {
-  border-bottom: 1px solid var(--ink);
-}
-
-.question summary {
-  list-style: none;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: 1rem 0;
-  font-size: 1.0625rem;
-  font-weight: 500;
-}
-
-.question summary::-webkit-details-marker {
-  display: none; /* Safari's own triangle */
-}
-
-.question summary::after {
-  content: "+";
-  font-family: var(--font-mono);
-}
-
-.question[open] summary::after {
-  content: "–";
-}
-
-.question p {
-  padding-bottom: 1rem;
-  line-height: 1.6;
-  color: var(--muted);
-  max-width: 60ch;
 }
 
 @media (max-width: 860px) {
