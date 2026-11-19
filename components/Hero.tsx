@@ -21,7 +21,7 @@ export default function Hero() {
     <section className={styles.hero}>
       <div className={styles.intro}>
         <p className="label">Mechanical pendulum clock · No. 01</p>
-        <h1 className={styles.title}>A clock you can watch think.</h1>
+        <h1 className={styles.title}>A clock you can watch.</h1>
         <p className={styles.lede}>
           Every gear on display. 3D printed in the colors you choose, assembled
           by hand, and simple enough to understand at a glance.
