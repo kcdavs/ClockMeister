@@ -31,19 +31,18 @@ const MAX_DISTANCE = 2.5;
 
 // Exploded view, like lifting the layers of a sandwich: the back frame stays put, and every
 // printed part lifts out in its real back-to-front order, one per layer, with the same gap
-// (EXPLODE_GAP) between each part's back face and the previous part's front face. The dial, with
-// everything glued to it, goes on top; the hands just above it. Pins and screws stay locked to
-// the part they go through. Only the frame bolts slide out the back.
+// (EXPLODE_GAP) between each part's back face and the previous part's front face: first the
+// going train, then the dial (numerals printed on it), then the time train and the hands on top.
+// Pins and screws stay locked to the part they go through. Only the frame bolts go out the back.
 // Meanwhile the clock turns EXPLODE_TURN to a three-quarter view and shrinks to fit its box.
 const EXPLODE_GAP = 0.015; // meters between layers
-const HANDS_LIFT = 0.03; // meters the hands lift off the dial
 const BOLTS_BACK = 0.07; // meters the frame bolts slide out the back
 const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
 // Extra room when shrinking the exploded clock to fit: parts nearer the camera look bigger
 // than they measure (perspective), so aim for a bit less than the assembled width
 const EXPLODE_FIT = 0.75;
-// Parts that move as one piece with the dial (front frame)
-const ON_DIAL: (ZoneId | null)[] = ["frontFrame", "numerals", "motionWheel", "hourWheel", "minuteArbor"];
+// The time train: mounted on the front of the dial, under the hands
+const TIME_TRAIN: (ZoneId | null)[] = ["motionWheel", "hourWheel", "minuteArbor"];
 const EXPLODE_SPEED = 3; // higher = snappier animation
 
 type ModelProps = {
@@ -87,29 +86,41 @@ function planExplode(root: THREE.Object3D) {
   const across = (p: Part) =>
     new THREE.Vector2((p.box.min[acrossA] + p.box.max[acrossA]) / 2, (p.box.min[acrossB] + p.box.max[acrossB]) / 2);
 
-  const onDial = (p: Part) => ON_DIAL.includes(p.zone) || p.mesh.name.startsWith("Hour_Wheel");
+  const onDial = (p: Part) => p.zone === "frontFrame" || p.zone === "numerals";
+  // (the gray "Hour Wheel" is in the accents zone, but it's part of the time train)
+  const inTimeTrain = (p: Part) => TIME_TRAIN.includes(p.zone) || p.mesh.name.startsWith("Hour_Wheel");
   const isHardware = (p: Part) => p.zone === "fixed";
+  const byDepth = (a: Part, b: Part) => lo(a) + hi(a) - (lo(b) + hi(b)); // back to front
+
+  // Stacks parts one after another from `cursor` (where the next back face goes), each with
+  // the same gap in front of the last; returns where the next part would go.
+  const stack = (layer: Part[], cursor: number) => {
+    for (const p of layer) {
+      p.travel = cursor - lo(p);
+      cursor = hi(p) + p.travel + EXPLODE_GAP;
+    }
+    return cursor;
+  };
 
   // 1. Back frame stays; frame bolts slide out the back
   rear.travel = 0;
   for (const p of parts) if (isFrameBolt(p.mesh.name)) p.travel = -BOLTS_BACK;
 
-  // 2. Every other printed part gets its own layer, back to front, stacked with equal gaps,
+  // 2. The going train etc.: every other printed part gets its own layer, back to front,
   //    starting just in front of the back frame
-  const layers = parts
-    .filter((p) => p !== rear && !isHardware(p) && !onDial(p) && p.zone !== "hands")
-    .sort((a, b) => (lo(a) + hi(a)) - (lo(b) + hi(b)));
-  let cursor = hi(rear) + EXPLODE_GAP; // where the next part's back face goes
-  for (const p of layers) {
-    p.travel = cursor - lo(p);
-    cursor = hi(p) + p.travel + EXPLODE_GAP;
-  }
+  const train = parts
+    .filter((p) => p !== rear && !isHardware(p) && !onDial(p) && !inTimeTrain(p) && p.zone !== "hands")
+    .sort(byDepth);
+  let cursor = stack(train, hi(rear) + EXPLODE_GAP);
 
-  // 3. The dial and everything glued to it go on top; the hands lift just off it
+  // 3. The dial (with its numerals) as one layer, then the time train and the hands on top,
+  //    each its own layer
   const dial = parts.filter(onDial);
   const dialTravel = cursor - Math.min(...dial.map(lo));
   for (const p of dial) p.travel = dialTravel;
-  for (const p of parts) if (p.zone === "hands") p.travel = dialTravel + HANDS_LIFT;
+  cursor = Math.max(...dial.map(hi)) + dialTravel + EXPLODE_GAP;
+  cursor = stack(parts.filter(inTimeTrain).sort(byDepth), cursor);
+  stack(parts.filter((p) => p.zone === "hands").sort(byDepth), cursor);
 
   // 4. Pins, tube and small screws stay locked to the printed part they go through:
   //    first choice, a part centered on the pin (a gear on its arbor); otherwise the
