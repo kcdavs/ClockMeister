@@ -36,7 +36,8 @@ const MAX_DISTANCE = 2.5;
 // going train, then the time train, then the dial (numerals printed on it), and the hands on top.
 // Pins and screws stay locked to the part they go through. Only the frame bolts go out the back.
 // Meanwhile the clock turns EXPLODE_TURN to a three-quarter view and shrinks to fit its box.
-const EXPLODE_GAP = 0.015; // meters between layers
+const EXPLODE_GAP = 0.015; // meters between layers (back face to front face)
+const GEAR_SPACING = 0.055; // meters between the going train's gear planes (see planeOf)
 const BOLTS_BACK = 0.07; // meters the frame bolts slide out the back
 const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
 // Extra room when shrinking the exploded clock to fit: parts nearer the camera look bigger
@@ -69,7 +70,7 @@ function planExplode(root: THREE.Object3D) {
   const axis = whole.x < whole.y && whole.x < whole.z ? "x" : whole.y < whole.z ? "y" : "z";
   const [acrossA, acrossB] = (["x", "y", "z"] as const).filter((a) => a !== axis);
 
-  type Part = { mesh: THREE.Mesh; zone: ZoneId | null; box: THREE.Box3; travel?: number };
+  type Part = { mesh: THREE.Mesh; zone: ZoneId | null; box: THREE.Box3; travel?: number; plane?: number };
   const parts: Part[] = [];
   root.traverse((obj) => {
     if (obj instanceof THREE.Mesh && obj.parent)
@@ -93,6 +94,27 @@ function planExplode(root: THREE.Object3D) {
   const isHardware = (p: Part) => p.zone === "fixed";
   const byDepth = (a: Part, b: Part) => lo(a) + hi(a) - (lo(b) + hi(b)); // back to front
 
+  // A part's main plane: the average depth of its surfaces, weighted by how much each one faces
+  // front or back. A gear's big flat disk outweighs its hub and pinion, so this lands on the disk.
+  const planeOf = (p: Part) => {
+    if (p.plane !== undefined) return p.plane;
+    const { position } = p.mesh.geometry.attributes;
+    const index = p.mesh.geometry.index;
+    const corner = (i: number) =>
+      new THREE.Vector3().fromBufferAttribute(position, index ? index.getX(i) : i).applyMatrix4(p.mesh.matrixWorld);
+    let sum = 0;
+    let weight = 0;
+    const count = index ? index.count : position.count;
+    for (let i = 0; i < count; i += 3) {
+      const [a, b, c] = [corner(i), corner(i + 1), corner(i + 2)];
+      const facing = Math.abs(new THREE.Vector3().crossVectors(b.clone().sub(a), c.clone().sub(a))[axis]);
+      sum += facing * ((a[axis] + b[axis] + c[axis]) / 3) * sign;
+      weight += facing;
+    }
+    p.plane = weight ? sum / weight : (lo(p) + hi(p)) / 2;
+    return p.plane;
+  };
+
   // Stacks parts one after another from `cursor` (where the next back face goes), each with
   // the same gap in front of the last; returns where the next part would go.
   const stack = (layer: Part[], cursor: number) => {
@@ -107,9 +129,11 @@ function planExplode(root: THREE.Object3D) {
   rear.travel = 0;
   for (const p of parts) if (isFrameBolt(p.mesh.name)) p.travel = -BOLTS_BACK;
 
-  // 2. The going train etc.: every other printed part gets its own layer, in the owner's
-  //    assembly order (data/explode.ts; unlisted parts after, by depth), starting just in
-  //    front of the back frame
+  // 2. The going train etc.: every other printed part, in layers in the owner's assembly
+  //    order (data/explode.ts; unlisted parts after, by depth). Gears have hubs and pinions
+  //    sticking out, so spacing their outer faces looks uneven; instead each layer's main
+  //    plane (where its gear disk is, see planeOf) is spaced GEAR_SPACING apart. The first
+  //    layer starts just in front of the back frame.
   const order = (p: Part) => {
     const i = stackIndex(p.mesh.name);
     return i < 0 ? Infinity : i;
@@ -117,7 +141,19 @@ function planExplode(root: THREE.Object3D) {
   const train = parts
     .filter((p) => p !== rear && !isHardware(p) && !onDial(p) && !inTimeTrain(p) && p.zone !== "hands")
     .sort((a, b) => order(a) - order(b) || byDepth(a, b));
-  let cursor = stack(train, hi(rear) + EXPLODE_GAP);
+  const layers: Part[][] = [];
+  for (const p of train) {
+    const last = layers[layers.length - 1];
+    if (last && order(p) !== Infinity && order(p) === order(last[0])) last.push(p);
+    else layers.push([p]);
+  }
+  let plane = 0;
+  layers.forEach((layer, i) => {
+    if (i === 0) plane = hi(rear) + EXPLODE_GAP + Math.max(...layer.map((p) => planeOf(p) - lo(p)));
+    else plane += GEAR_SPACING;
+    for (const p of layer) p.travel = plane - planeOf(p);
+  });
+  let cursor = Math.max(hi(rear), ...train.map((p) => hi(p) + (p.travel ?? 0))) + EXPLODE_GAP;
 
   // 3. The time train (each part its own layer), then the dial with its numerals as one
   //    layer, then the hands on top, each its own layer
