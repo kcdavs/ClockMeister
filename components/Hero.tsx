@@ -1,3 +1,5 @@
+import Image from "next/image";
+import roomPhoto from "@/public/photos/clock-in-room.jpg";
 import BuyButton from "./BuyButton";
 import ClockViewer from "./ClockViewer";
 import Presets from "./Presets";
@@ -40,8 +42,18 @@ export default function Hero() {
         <BuyButton />
       </div>
 
-      {/* Reserved for the "window" background illustration */}
-      <div className={styles.window} aria-hidden="true" />
+      {/* A real clock at home. The photo fills the cell (cropped to fit), kept centered on the
+          clock. next/image serves a smaller copy to phones. Location data was stripped. */}
+      <div className={styles.window}>
+        <Image
+          src={roomPhoto}
+          alt="A ClockMeister clock hanging on a living room wall beside plants and a big window"
+          fill
+          sizes="(max-width: 860px) 100vw, 38vw"
+          placeholder="blur"
+          className={styles.photo}
+        />
+      </div>
 
       <div className={styles.block} aria-hidden="true" />
       <div className={styles.blueBlock} aria-hidden="true" />

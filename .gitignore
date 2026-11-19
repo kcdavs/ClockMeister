@@ -42,3 +42,6 @@ next-env.d.ts
 
 # original CAD exports (large; optimized copies live in public/models)
 /models-src/
+
+# Owner's original photos (HEIC, contain GPS location). Web copies live in public/photos.
+/Photos/
