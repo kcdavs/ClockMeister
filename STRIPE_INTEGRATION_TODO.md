@@ -94,8 +94,7 @@ allows it for subscriptions, so it is left out (mode is `payment`).
 - [x] Create the product + Price in Stripe (sandbox)
 - [x] "Buy" button (`components/BuyButton.tsx`, under the presets) — tested,
       lands on Stripe Checkout
-- [ ] Product is named "Mondrian Clock" in Stripe; customers see that name
-      whatever preset they pick. Rename it (e.g. "ClockMeister clock")?
+- [x] Live product renamed "3D Printed Clock" (was "Mondrian Clock")
 - [x] `/success` page: thank-you, customer email, colors from the order
 - [ ] Fulfillment: read the colors from each payment's metadata (Dashboard,
       or a `checkout.session.completed` webhook later); depends on the
