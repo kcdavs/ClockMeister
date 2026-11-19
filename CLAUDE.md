@@ -79,7 +79,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 6. ✅ Configurator (click a part → filament swatches; site colors follow the clock). Real Bambu filament list and presets done; owner to finalize the default and preset colors.
 7. Deploy to Vercel (in progress) — phone touch handling done
 8. Stripe Checkout + serverless function + success page
-9. Polish and launch (exploded view, Santos window illustration, performance on phones)
+9. Polish and launch (✅ exploded view slider; to do: exploded view as hero background, Santos window illustration, performance on phones)
 
 Owner's current to-do list (2026-11-18):
 - [x] Real colors: Bambu Lab PLA Basic swatches
@@ -87,6 +87,7 @@ Owner's current to-do list (2026-11-18):
 - [ ] Photos of the clock in a room
 - [ ] Ordering: hand off to a third-party 3D print service, or a semi-automated flow where the owner approves each order
 - [ ] Better mobile experience (touch gestures + visible color popup done 2026-11-18; more to come?)
+- [x] Exploded view (slider; stack order in `data/explode.ts`, ratchet spot still a guess)
 
 ## Routine tasks
 - Run locally: `npm run dev` → http://localhost:3000
