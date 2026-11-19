@@ -1,0 +1,31 @@
+.buy {
+  padding: 0 var(--space-3) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Solid ink so the page's color stays scarce; turns the accent red on hover */
+.button {
+  align-self: flex-start;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--red);
+  color: var(--red-text);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.error {
+  font-size: 0.85rem;
+}

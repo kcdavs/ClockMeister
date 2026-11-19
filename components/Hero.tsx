@@ -1,3 +1,4 @@
+import BuyButton from "./BuyButton";
 import ClockViewer from "./ClockViewer";
 import Presets from "./Presets";
 import styles from "./Hero.module.css";
@@ -36,6 +37,7 @@ export default function Hero() {
 
       <div className={styles.presets}>
         <Presets />
+        <BuyButton />
       </div>
 
       {/* Reserved for the "window" background illustration */}
