@@ -29,10 +29,12 @@ const FIT_MARGIN = 1.12; // 1 = clock exactly fills the viewer; bigger = more sp
 const MIN_DISTANCE = 0.05; // closest and farthest the camera can zoom, in meters
 const MAX_DISTANCE = 2.5;
 
-// Exploded view: each part slides front-to-back, EXPLODE_SPREAD times as far as it already sits
-// from the clock's middle (so layers keep their real order), while the clock turns EXPLODE_TURN
-// to a three-quarter view and shrinks to EXPLODE_SCALE so the deeper clock still fits.
-const EXPLODE_SPREAD = 3;
+// Exploded view, like lifting the layers of a sandwich: the back frame stays put, the front frame
+// (dial) slides EXPLODE_TRAVEL meters forward, and every part in between moves forward in
+// proportion to where it sits between the two frames, so the stack keeps its order. Meanwhile
+// the clock turns EXPLODE_TURN to a three-quarter view and shrinks to EXPLODE_SCALE to fit.
+const EXPLODE_TRAVEL = 0.2;
+const HANDS_LIFT = 0.15; // the hands lift this much further (× EXPLODE_TRAVEL) off the dial
 const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
 const EXPLODE_SCALE = 0.68;
 const EXPLODE_SPEED = 3; // higher = snappier animation
@@ -101,23 +103,40 @@ function ClockModel({ explodeAmount, colors, hovered, onHover, onPick }: ModelPr
     const whole = new THREE.Box3().setFromObject(root);
     const size = whole.getSize(new THREE.Vector3());
     const axis = size.x < size.y && size.x < size.z ? "x" : size.y < size.z ? "y" : "z";
-    const middle = whole.getCenter(new THREE.Vector3())[axis];
     const depthOf = (obj: THREE.Object3D) =>
       new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3())[axis];
-    // The numerals and tick marks are printed onto the dial (front frame): they move with it
-    let dialDepth: number | null = null;
-    root.traverse((obj) => {
-      if (obj.userData.zone === "frontFrame") dialDepth = depthOf(obj);
-    });
+    const find = (zone: ZoneId) => {
+      let found: THREE.Object3D = root;
+      root.traverse((obj) => {
+        if (obj.userData.zone === zone) found = obj;
+      });
+      return found;
+    };
+    // The back frame is a deep tray that the gears sit in, so measure from its back wall
+    // (the side farthest from the dial) to the middle of the dial.
+    const front = depthOf(find("frontFrame"));
+    const backBox = new THREE.Box3().setFromObject(find("rearFrame"));
+    const back = front > depthOf(find("rearFrame")) ? backBox.min[axis] : backBox.max[axis];
     root.traverse((obj) => {
       if (!(obj instanceof THREE.Mesh) || !obj.parent) return;
-      const depth =
-        obj.userData.zone === "numerals" && dialDepth !== null ? dialDepth : depthOf(obj);
-      // One meter along the axis, expressed in the part's own parent's coordinates
-      const step = new THREE.Vector3().setComponent("xyz".indexOf(axis), 1);
-      const local = obj.parent.worldToLocal(step.clone()).sub(obj.parent.worldToLocal(new THREE.Vector3()));
+      const zone = obj.userData.zone as ZoneId | null;
+      // Where the part sits in the stack: 0 = back wall, 1 = dial. Nothing goes past the dial
+      // except the hands (parts mounted on the dial's front ride along with it), and the back
+      // frame itself never moves. The numerals are printed onto the dial.
+      const place = (depthOf(obj) - back) / (front - back);
+      const stack =
+        zone === "rearFrame" ? 0
+        : zone === "hands" ? 1 + HANDS_LIFT
+        : zone === "numerals" ? 1
+        : THREE.MathUtils.clamp(place, 0, 1);
+      const forward = new THREE.Vector3().setComponent("xyz".indexOf(axis), Math.sign(front - back));
+      const travel = stack * EXPLODE_TRAVEL;
+      // The same movement, expressed in the part's own parent's coordinates
+      const local = obj.parent
+        .worldToLocal(forward.multiplyScalar(travel))
+        .sub(obj.parent.worldToLocal(new THREE.Vector3()));
       obj.userData.home = obj.position.clone();
-      obj.userData.explode = local.multiplyScalar((depth - middle) * EXPLODE_SPREAD);
+      obj.userData.explode = local;
     });
     return root;
   }, [scene, steelReflections]);
@@ -428,6 +447,10 @@ function ExplodeAnimator({
     clock.scale.setScalar(scale);
     clock.position.y = halfHeight.current * (1 - scale); // shrink toward the top, not the middle,
     // so the gears and dial stay where they were on screen
+    // The stack grows forward only, so keep it centered left-to-right as it turns
+    clock.position.x = 0;
+    clock.updateMatrixWorld(true);
+    clock.position.x = -new THREE.Box3().setFromObject(clock).getCenter(new THREE.Vector3()).x;
   });
   return null;
 }
