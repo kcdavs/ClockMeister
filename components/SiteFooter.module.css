@@ -1,0 +1,66 @@
+/* Footer band, mirroring the header: ink rules between paper cells, one small red square.
+     ┌────┬──────────────┬──────────────────────────────┬──────────────┐
+     │ ■  │ ClockMeister │ About · How it works · …     │ © 2026       │
+     └────┴──────────────┴──────────────────────────────┴──────────────┘ */
+.footer {
+  display: grid;
+  grid-template-columns: 3.5rem auto 1fr auto;
+  gap: var(--rule);
+  background: var(--ink);
+  border-top: var(--rule) solid var(--ink);
+}
+
+.footer > * {
+  background: var(--paper);
+  padding: var(--space-3) var(--space-3);
+  display: flex;
+  align-items: center;
+}
+
+.footer > .square {
+  background: var(--red);
+  transition: background-color 0.4s; /* follows the clock's colors, like the other accents */
+}
+
+.wordmark {
+  font-weight: 600;
+  font-size: 1.125rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.links {
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.links a:hover {
+  color: var(--red);
+}
+
+.soon {
+  color: var(--muted);
+  cursor: default;
+}
+
+.soon small {
+  font-size: 0.6rem;
+  border: 1px solid currentColor;
+  padding: 0.05rem 0.3rem;
+  margin-left: 0.25rem;
+}
+
+.fine {
+  color: var(--muted);
+}
+
+/* Phones: wordmark row on top, links and small print stacked below */
+@media (max-width: 720px) {
+  .footer {
+    grid-template-columns: 3rem 1fr;
+  }
+  .links,
+  .fine {
+    grid-column: 1 / -1;
+  }
+}

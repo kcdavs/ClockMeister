@@ -5,6 +5,18 @@
 // While it's empty, the "Watch the install video" link stays hidden.
 export const INSTALL_VIDEO_URL = "";
 
+// Business contact email for the footer's Contact link (e.g. "orders@clockmeisterclocks.com").
+// While it's empty, Contact shows as "soon". Never a personal address.
+export const CONTACT_EMAIL = "";
+
+// Footer links, in order. href null = not set up yet: shown grayed out with "soon".
+export const FOOTER_LINKS: { label: string; href: string | null }[] = [
+  { label: "About", href: null }, // TODO: about page in the owner's words
+  { label: "How it works", href: "/how-it-works" },
+  { label: "Install video", href: INSTALL_VIDEO_URL || null },
+  { label: "Contact", href: CONTACT_EMAIL ? `mailto:${CONTACT_EMAIL}` : null },
+];
+
 // "Before you buy": only what a buyer needs. Size measured from the 3D model, pendulum included.
 export const DETAILS = [
   ["Size", "25 × 54 × 7 cm (9.8 × 21.3 × 2.7 in), pendulum included"],

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Jost } from "next/font/google";
+import SiteFooter from "@/components/SiteFooter";
 import "./globals.css";
 
 // Fonts are downloaded at build time and served from our own site (fast, no Google request).
@@ -22,11 +23,15 @@ export const viewport: Viewport = {
   themeColor: "#c12e1f",
 };
 
-// The root layout wraps every page on the site. {children} is the page itself.
+// The root layout wraps every page on the site. {children} is the page itself;
+// the footer is here so every page gets it.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${jost.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }
