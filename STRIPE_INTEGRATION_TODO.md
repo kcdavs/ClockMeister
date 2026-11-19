@@ -13,7 +13,7 @@ The following values are placeholders and must be updated before going live.
 
 | Field | Current Value | What to Set |
 |-------|--------------|-------------|
-| STRIPE_PRICE_ID | `price_1UdaLT…` (sandbox, $350) | Set. At launch, use the live-mode Price ID (live and sandbox IDs differ). |
+| STRIPE_PRICE_ID | sandbox `price_1UdaLT…`; live `price_1UdcMcRt2mhEdHy0xVnLMA8O` ($350) | Live ID goes in Vercel Production; Preview keeps the sandbox ID. |
 | success_url | `{site}/success?session_id={CHECKOUT_SESSION_ID}` | Done: `app/success/page.tsx` looks the order up in Stripe and shows the colors. |
 | cancel_url | `{site}/` | Already real (back to the home page). Change only if you want a different page. |
 | mode | `payment` | Correct for a one-time purchase. Only change for subscriptions. |
@@ -104,8 +104,9 @@ allows it for subscriptions, so it is left out (mode is `payment`).
 - [ ] Before going live: business support email (e.g. orders@clockmeisterclocks.com
       forwarding to you) and phone (e.g. Google Voice) in Stripe → Settings →
       Business → Public details, so customers never see personal contact info
-- [ ] Stripe → Settings → Customer emails: turn on "Successful payments" receipts
-- [ ] Switch to live keys at launch
+- [ ] Stripe (live) → Settings → Customer emails: turn on "Successful payments" receipts
+- [x] Live keys in Vercel Production (2026-11-19); live checkout verified (`cs_live_`). Preview stays on sandbox.
+- [x] Owner test purchase in live mode with a $300-off one-use code (`OWNERTEST`); refund it in the Dashboard
 
 ## Resources
 

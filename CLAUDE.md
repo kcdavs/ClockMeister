@@ -82,7 +82,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 5. ✅ 3D viewer with the real model
 6. ✅ Configurator (click a part → filament swatches; site colors follow the clock). Real Bambu filament list and presets done; owner to finalize the default and preset colors.
 7. Deploy to Vercel (in progress) — phone touch handling done
-8. Stripe Checkout + serverless function + success page
+8. ✅ Stripe Checkout + serverless function + success page — LIVE since 2026-11-19 (live key + live Price ID in Vercel Production only; `.env.local` and Preview stay on the sandbox so local/preview never charge real cards). Owner made a real test purchase with a one-use $300-off code. Promo codes: Stripe → Coupons → coupon must also have a customer-facing promotion code. Not done: product still named "Mondrian Clock", receipts toggle, contact email.
 9. Polish and launch (✅ exploded view slider; to do: exploded view as hero background, Santos window illustration, performance on phones)
 
 Owner's current to-do list (2026-11-18):
