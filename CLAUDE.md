@@ -30,7 +30,7 @@ The owner is learning web development through this project (background: data ana
 - `scripts/optimize-model.sh` — glTF-Transform pipeline: dedup → flatten → join (keep part names) → weld → prune → meshopt
 
 ## 3D model
-Source: Onshape "Right Assembly" (the whole clock; a mirrored left version exists but isn't used). 93 parts, ~311k triangles, 9 Onshape colors.
+Source: Onshape "Right Assembly" (the whole clock; a mirrored left version exists but isn't used). 105 parts, ~322k triangles (2026-11-18 export; added 7× 3mm Dowel, a 5mm Tube and 4 M4 screws, all fixed hardware).
 Optimization took it from 27.7 MB / 11,261 draw pieces to 2.0 MB / 93 pieces, no detail lost.
 
 Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 15 selectable zones + fixed:
@@ -44,7 +44,7 @@ Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules).
 - Motion works, each its own zone: Motion works wheel (Motion Works, 89 mm), Hour wheel (white Hour Wheel, 112 mm, behind the hands), Minute arbor (Minute Arbor, 32 mm)
 - Pendulum: Pendant; Ratchet: Spur gear (9 teeth) (owner to confirm ratchet guess)
 - Small gray parts: Hour Wheel (gray), Part 2 (owner to confirm where these belong)
-- Fixed (not selectable): M3 screws, Pendulm Rod
+- Fixed (not selectable): M3/M4 screws, Pendulm Rod, 3mm dowels, 5mm tube
 Known issue: two parts are both named "Hour Wheel" (white and gray). Rename the gray one in Onshape on next export; until then distinguish by material color.
 Test the mapping without a browser: a Node script loading the GLB with three's GLTFLoader + MeshoptDecoder and running `zoneForPart` on every mesh (Node 25 imports .ts directly).
 
@@ -90,7 +90,7 @@ Owner's current to-do list (2026-11-18):
 - Run locally: `npm run dev` → http://localhost:3000
 - Check the production build: `npm run build`
 - Lint: `npm run lint`
-- New Onshape export: save it as `models-src/right-assembly.glb`, then `npm run model`
+- New Onshape export: export Right Assembly as GLTF/GLB at **Medium** resolution (Fine is ~2.3× heavier: 47 MB raw / 4.5 MB on the site), save it as `models-src/right-assembly.glb`, then `npm run model`. Expect ~28 MB raw → ~2.5 MB. New or renamed parts render magenta until added to `zoneForPart`.
 - Push: `git push` (GitHub token is stored in macOS Keychain)
 
 ## Notes

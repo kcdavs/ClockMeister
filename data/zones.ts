@@ -73,6 +73,7 @@ export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
   if (name.startsWith("Pendant")) return "pendulum";
   if (name.startsWith("Spur gear")) return "ratchet";
   if (name.startsWith("Hex socket") || name.startsWith("Pendulm Rod")) return "fixed";
+  if (/^\d+mm (Dowel|Tube)/.test(name)) return "fixed"; // bought metal dowels and tube, not printed
 
   return null; // unknown part: the viewer paints it magenta so it's easy to spot
 }
