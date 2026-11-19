@@ -2,8 +2,8 @@ import Link from "next/link";
 import styles from "./SiteHeader.module.css";
 
 // Top bar: wordmark, section links, and a red "Configure" cell.
-// Link is Next.js's version of <a> for pages on our own site (it loads them faster);
-// plain <a> is fine for jumping to a section on the same page (#how).
+// Link is Next.js's version of <a> for pages on our own site (it loads them faster).
+// Section links point at the home page (/#how) so they also work from other pages (e.g. /success).
 export default function SiteHeader() {
   return (
     <header className={styles.header}>
@@ -12,12 +12,12 @@ export default function SiteHeader() {
         ClockMeister
       </Link>
       <nav className={`${styles.nav} label`}>
-        <a href="#how">How it works</a>
-        <a href="#specs">Specs</a>
+        <Link href="/#how">How it works</Link>
+        <Link href="/#specs">Specs</Link>
       </nav>
-      <a href="#configure" className={`${styles.cta} label`}>
+      <Link href="/#configure" className={`${styles.cta} label`}>
         Configure
-      </a>
+      </Link>
     </header>
   );
 }

@@ -14,7 +14,7 @@ The following values are placeholders and must be updated before going live.
 | Field | Current Value | What to Set |
 |-------|--------------|-------------|
 | STRIPE_PRICE_ID | `price_1UdaLT…` (sandbox, $350) | Set. At launch, use the live-mode Price ID (live and sandbox IDs differ). |
-| success_url | `{site}/success?session_id={CHECKOUT_SESSION_ID}` | Real URL, but the `/success` page doesn't exist yet (Stage 8). Build it; keep `{CHECKOUT_SESSION_ID}`. |
+| success_url | `{site}/success?session_id={CHECKOUT_SESSION_ID}` | Done: `app/success/page.tsx` looks the order up in Stripe and shows the colors. |
 | cancel_url | `{site}/` | Already real (back to the home page). Change only if you want a different page. |
 | mode | `payment` | Correct for a one-time purchase. Only change for subscriptions. |
 | STRIPE_SECRET_KEY | set locally (`sk_test_`) | Also add it in Vercel (below). Live key `sk_live_` at launch. |
@@ -67,6 +67,7 @@ allows it for subscriptions, so it is left out (mode is `payment`).
 
 - `app/api/checkout/route.ts`: the server function (`POST /api/checkout`)
 - `components/BuyButton.tsx` + `.module.css`: the Buy button
+- `app/success/page.tsx` + `success.module.css`: the after-payment page
 - `.env.local`: secret key, local only (gitignored)
 - `STRIPE_INTEGRATION_TODO.md`: this file
 
@@ -95,7 +96,7 @@ allows it for subscriptions, so it is left out (mode is `payment`).
       lands on Stripe Checkout
 - [ ] Product is named "Mondrian Clock" in Stripe; customers see that name
       whatever preset they pick. Rename it (e.g. "ClockMeister clock")?
-- [ ] Build the `/success` page
+- [x] `/success` page: thank-you, customer email, colors from the order
 - [ ] Fulfillment: read the colors from each payment's metadata (Dashboard,
       or a `checkout.session.completed` webhook later); depends on the
       print-service vs. owner-approval decision
