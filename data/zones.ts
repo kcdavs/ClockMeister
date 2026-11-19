@@ -81,3 +81,8 @@ export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
 
   return null; // unknown part: the viewer paints it magenta so it's easy to spot
 }
+
+// The long M4 bolts that hold the two frames together. In the exploded view they're the only
+// parts that slide out the back; everything else moves forward.
+export const isFrameBolt = (rawName: string) =>
+  /^Hex socket.*M4/.test(rawName.replace(/_/g, " "));
