@@ -9,7 +9,7 @@ import type { ZoneId } from "./zones";
 type Zone = Exclude<ZoneId, "fixed">; // hardware isn't colorable
 type Scheme = Record<Zone, string>; // zone → filament name
 
-// Listed in the order the buttons appear: most colors first.
+// Listed in the order the buttons appear.
 // strip = the little color squares on the button (filament names, left to right).
 const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] = [
   {
@@ -82,6 +82,29 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
     },
   },
   {
+    // Orange, black and white
+    id: "orioles",
+    name: "Orioles",
+    strip: ["Orange", "Black", "Jade White"],
+    scheme: {
+      barrel: "Jade White",
+      numerals: "Black",
+      hands: "Orange",
+      driveWheel: "Orange",
+      goingTrain: "Orange",
+      escWheel: "Black",
+      escPallet: "Black",
+      frontFrame: "Jade White",
+      rearFrame: "Jade White",
+      motionWheel: "Black",
+      hourWheel: "Jade White",
+      minuteArbor: "Orange",
+      pendulum: "Orange",
+      ratchet: "Black",
+      accents: "Black",
+    },
+  },
+  {
     id: "pink",
     name: "Pink",
     strip: ["Black", "Jade White", "Pink"],
@@ -102,29 +125,6 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
       pendulum: "Black",
       ratchet: "Jade White",
       accents: "Jade White",
-    },
-  },
-  {
-    // Orange, black and white
-    id: "orioles",
-    name: "Orioles",
-    strip: ["Orange", "Black", "Jade White"],
-    scheme: {
-      barrel: "Orange",
-      numerals: "Black",
-      hands: "Black",
-      driveWheel: "Black",
-      goingTrain: "Orange",
-      escWheel: "Black",
-      escPallet: "Orange",
-      frontFrame: "Jade White",
-      rearFrame: "Black",
-      motionWheel: "Orange",
-      hourWheel: "Black",
-      minuteArbor: "Orange",
-      pendulum: "Orange",
-      ratchet: "Black",
-      accents: "Black",
     },
   },
 ];
