@@ -32,7 +32,7 @@ const MAX_DISTANCE = 2.5;
 // Exploded view, like lifting the layers of a sandwich: the back frame stays put, and every
 // printed part lifts out in its real back-to-front order, one per layer, with the same gap
 // (EXPLODE_GAP) between each part's back face and the previous part's front face: first the
-// going train, then the dial (numerals printed on it), then the time train and the hands on top.
+// going train, then the time train, then the dial (numerals printed on it), and the hands on top.
 // Pins and screws stay locked to the part they go through. Only the frame bolts go out the back.
 // Meanwhile the clock turns EXPLODE_TURN to a three-quarter view and shrinks to fit its box.
 const EXPLODE_GAP = 0.015; // meters between layers
@@ -41,7 +41,7 @@ const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
 // Extra room when shrinking the exploded clock to fit: parts nearer the camera look bigger
 // than they measure (perspective), so aim for a bit less than the assembled width
 const EXPLODE_FIT = 0.75;
-// The time train: mounted on the front of the dial, under the hands
+// The time train: between the going train and the dial (the hands sit in front of the dial)
 const TIME_TRAIN: (ZoneId | null)[] = ["motionWheel", "hourWheel", "minuteArbor"];
 const EXPLODE_SPEED = 3; // higher = snappier animation
 
@@ -113,13 +113,13 @@ function planExplode(root: THREE.Object3D) {
     .sort(byDepth);
   let cursor = stack(train, hi(rear) + EXPLODE_GAP);
 
-  // 3. The dial (with its numerals) as one layer, then the time train and the hands on top,
-  //    each its own layer
+  // 3. The time train (each part its own layer), then the dial with its numerals as one
+  //    layer, then the hands on top, each its own layer
+  cursor = stack(parts.filter(inTimeTrain).sort(byDepth), cursor);
   const dial = parts.filter(onDial);
   const dialTravel = cursor - Math.min(...dial.map(lo));
   for (const p of dial) p.travel = dialTravel;
   cursor = Math.max(...dial.map(hi)) + dialTravel + EXPLODE_GAP;
-  cursor = stack(parts.filter(inTimeTrain).sort(byDepth), cursor);
   stack(parts.filter((p) => p.zone === "hands").sort(byDepth), cursor);
 
   // 4. Pins, tube and small screws stay locked to the printed part they go through:
