@@ -6,7 +6,7 @@
 // the matching blocks, buttons and browser toolbar on the site recolor too.
 
 export type ZoneId =
-  | "face"
+  | "barrel"
   | "numerals"
   | "hands"
   | "mainWheel"
@@ -31,7 +31,7 @@ export const ZONES: {
   color: string;
   accent?: Accent;
 }[] = [
-  { id: "face", label: "Face", color: "#ffffff" },
+  { id: "barrel", label: "Mainspring barrel", color: "#ffffff" },
   { id: "numerals", label: "Numerals", color: "#000000" },
   { id: "hands", label: "Hands", color: "#000000" },
   { id: "mainWheel", label: "Main wheel", color: "#c12e1f" },
@@ -56,7 +56,8 @@ export const ZONES: {
 export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
   const name = rawName.replace(/_/g, " ");
 
-  if (name === "Part 3") return "face";
+  // Part 3 is the mainspring barrel (unnamed in Onshape); accept its real name once renamed
+  if (name === "Part 3" || name.startsWith("Mainspring Barrel")) return "barrel";
   if (name === "Part 4") return "mainWheel"; // the large first wheel of the train
   if (name === "Part 2") return "accents";
   if (/^Part \d+$/.test(name)) return "numerals"; // all other unnamed parts are numeral segments

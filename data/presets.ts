@@ -18,7 +18,7 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
     strip: ["Red", "Sunflower Yellow", "Cyan", "Black", "Jade White"],
     // The default clock: the Onshape colors, matched to the nearest Bambu filaments
     scheme: {
-      face: "Jade White",
+      barrel: "Jade White",
       numerals: "Black",
       hands: "Black",
       mainWheel: "Red",
@@ -41,7 +41,7 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
     name: "Ravens",
     strip: ["Purple", "Indigo Purple", "Gold", "Black", "Jade White"],
     scheme: {
-      face: "Purple",
+      barrel: "Jade White",
       numerals: "Gold",
       hands: "Gold",
       mainWheel: "Black",
@@ -64,7 +64,7 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
     name: "Maryland",
     strip: ["Sunflower Yellow", "Red", "Black", "Jade White"],
     scheme: {
-      face: "Sunflower Yellow",
+      barrel: "Sunflower Yellow",
       numerals: "Black",
       hands: "Black",
       mainWheel: "Red",
@@ -87,7 +87,7 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
     strip: ["Black", "Jade White", "Pink"],
     // Picked by the owner on localhost (2026-11-18)
     scheme: {
-      face: "Black",
+      barrel: "Black",
       numerals: "Jade White",
       hands: "Black",
       mainWheel: "Jade White",
@@ -110,7 +110,7 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
     name: "Orioles",
     strip: ["Orange", "Black", "Jade White"],
     scheme: {
-      face: "Orange",
+      barrel: "Orange",
       numerals: "Black",
       hands: "Black",
       mainWheel: "Black",

@@ -34,7 +34,8 @@ export default function PartPicker({ zone, x, y, sheet, onClose }: Props) {
   }, [onClose]);
 
   const hardToRead =
-    (zone === "numerals" || zone === "face") && contrast(colors.numerals, colors.face) < 0.25;
+    (zone === "numerals" || zone === "frontFrame") &&
+    contrast(colors.numerals, colors.frontFrame) < 0.25; // the numerals sit on the front frame
 
   return (
     <div
@@ -78,7 +79,7 @@ export default function PartPicker({ zone, x, y, sheet, onClose }: Props) {
       </div>
 
       {hardToRead && (
-        <p className={`${styles.warning} label`}>Numerals may be hard to read on this face</p>
+        <p className={`${styles.warning} label`}>Numerals may be hard to read on this frame</p>
       )}
     </div>
   );

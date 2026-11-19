@@ -34,8 +34,8 @@ Source: Onshape "Right Assembly" (the whole clock; a mirrored left version exist
 Optimization took it from 27.7 MB / 11,261 draw pieces to 2.0 MB / 93 pieces, no detail lost.
 
 Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 15 selectable zones + fixed:
-- Face: Part 3 (multi-color print with the numerals)
-- Numerals: the 72 small "Part N" segments — must contrast with the face (warning shown)
+- Mainspring barrel (zone id `barrel`): Part 3, unnamed in Onshape (was wrongly called "Face"; owner to rename it "Mainspring Barrel", which the rules already accept)
+- Numerals: the 72 small "Part N" segments, on the front frame — must contrast with the front frame (warning shown)
 - Hands: Hour Hand, Minute Hand
 - Main wheel: Part 4 (the large first wheel of the train)
 - Wheels: 2nd/3rd/4th Wheel — drives site accent `--red`
@@ -59,7 +59,6 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - Shared color store: `components/ClockColors.tsx` (React context). Updating colors also rewrites the site accent CSS variables (`--red/--blue/--yellow` and `--red-text` for readable button text) and the browser theme-color meta tag.
 - Filaments: `data/filaments.json` (id, name, hex) — the 30 solid Bambu Lab PLA Basic colors, hex codes from Bambu Studio's `resources/profiles/BBL/filament/filaments_color_codes.json` (gradients left out). Zone defaults in `data/zones.ts` (= the "Mondrian" preset) are the owner's Onshape colors snapped to the nearest filament in CIELAB: white→Jade White, red→Red, yellow→Sunflower Yellow, sky blue→Cyan, black and dark gray→Black (owner wants one black), light gray→Light Gray. Accents moved off the (now white) face: `--yellow` follows the escape wheel, `--blue` the motion works wheel.
 - Presets: `data/presets.ts`, in button order (most colors first): Mondrian (= the default clock), Ravens, Maryland, Pink (owner-picked), Orioles. Each names a filament per zone by its exact name, plus a `strip` of filament names for the button's color squares (no duplicates); a misspelling fails the build. Buttons in `components/Presets.tsx`, in a hero sidebar cell under the specs (above the clock on phones). Owner will fine-tune the schemes.
-- The numerals visually sit on the front frame (the big plate), so readability depends on numerals vs. front frame; the picker's contrast warning still compares numerals vs. face (to revisit).
 - Design mode (`npm run dev` only, via `DESIGN_MODE` in `lib/colors.ts`): free color picker in each popup and a "Copy colors" button. Hidden in production.
 - Unmapped parts render magenta (`#ff00ff`) and log a console warning.
 - Future ideas: exploded view animation (also as hero background); Santos-inspired line illustration revealed through the empty sidebar "window" cell with a fixed-background effect (must work on iOS, so not plain `background-attachment: fixed`).
