@@ -12,6 +12,7 @@ import {
 import { Canvas, ThreeEvent, useThree } from "@react-three/fiber";
 import { Center, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { ZONES, ZoneId, zoneForPart } from "@/data/zones";
 import { DESIGN_MODE, nameFor } from "@/lib/colors";
 import { Colors, useClockColors } from "./ClockColors";
@@ -23,6 +24,7 @@ const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
 const EDGE_ANGLE = 30; // degrees; lower = more outlines, higher = only the sharpest edges
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: "#111111" });
 const HOVER_GLOW = 0.15; // how much a hovered color group lights up
+const STEEL = "#d4d8dc"; // bought hardware (screws, bolts, pins, rod): brushed stainless steel
 const FIT_MARGIN = 1.12; // 1 = clock exactly fills the viewer; bigger = more space around it
 const MIN_DISTANCE = 0.05; // closest and farthest the camera can zoom, in meters
 const MAX_DISTANCE = 2.5;
@@ -44,6 +46,16 @@ const pickableZone = (obj: THREE.Object3D) => {
 function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
   const { scene } = useGLTF(MODEL_URL);
 
+  // Metal only looks like metal if it has something to reflect. This builds a soft, blurred
+  // "room" (part of three.js, nothing to download) that only the steel parts reflect.
+  const gl = useThree((s) => s.gl);
+  const steelReflections = useMemo(() => {
+    const generator = new THREE.PMREMGenerator(gl);
+    const texture = generator.fromScene(new RoomEnvironment(), 0.04).texture;
+    generator.dispose();
+    return texture;
+  }, [gl]);
+
   const model = useMemo(() => {
     const root = scene.clone(true);
     root.traverse((obj) => {
@@ -53,9 +65,11 @@ function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
       const zone = zoneForPart(obj.name, isGray);
       if (!zone) console.warn("Part not in any color zone:", obj.name);
       obj.userData.zone = zone;
+      const steel = zone === "fixed";
       obj.material = new THREE.MeshStandardMaterial({
-        roughness: 0.55,
-        metalness: 0,
+        ...(steel
+          ? { color: STEEL, metalness: 1, roughness: 0.3, envMap: steelReflections }
+          : { roughness: 0.55, metalness: 0 }),
         // nudge the surfaces back a hair so the outlines draw cleanly on top
         polygonOffset: true,
         polygonOffsetFactor: 1,
@@ -72,13 +86,14 @@ function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
       obj.add(edges);
     });
     return root;
-  }, [scene]);
+  }, [scene, steelReflections]);
 
   // Repaint each part from its zone's color, and make the hovered color group glow slightly.
   useEffect(() => {
     model.traverse((obj) => {
       if (!(obj instanceof THREE.Mesh)) return;
       const zone = obj.userData.zone as ZoneId | null;
+      if (zone === "fixed") return; // steel hardware keeps its look and can't be recolored
       const material = obj.material as THREE.MeshStandardMaterial;
       material.color.set((zone && colors[zone]) || UNMAPPED);
       material.emissive.set(zone && zone === hovered ? "#ffffff" : "#000000");

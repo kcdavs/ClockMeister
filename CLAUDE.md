@@ -43,8 +43,8 @@ Part names are matched with a leading "Mirror " ignored (Onshape names the mirro
 - Front frame: Front; Rear frame: Back
 - Motion works, each its own zone: Motion works wheel (Motion Works, 89 mm; drives site accent `--blue`), Hour wheel (white Hour Wheel, 112 mm, behind the hands), Minute arbor (Minute Arbor, 32 mm)
 - Pendulum: Pendant; Ratchet: Spur gear (9 teeth) (owner to confirm ratchet guess)
-- Small gray parts: Hour Wheel (gray), Shoulder Bolt (was "Part 2"; owner to confirm whether the bolt is printed or bought hardware)
-- Fixed (not selectable): M3/M4 screws, Pendulm Rod, 3mm dowels, 5mm tube
+- Small gray parts: Hour Wheel (gray)
+- Fixed (not selectable, rendered as stainless steel: metalness 1 + a three.js RoomEnvironment reflection used only by these parts): M3/M4 screws, Shoulder Bolt (was "Part 2"), Pendulm Rod, 3mm dowels, 5mm tube
 Known issue: two parts are both named "Hour Wheel" (white and gray). Rename the gray one in Onshape on next export; until then distinguish by material color.
 Test the mapping without a browser: a Node script loading the GLB with three's GLTFLoader + MeshoptDecoder and running `zoneForPart` on every mesh (Node 25 imports .ts directly).
 

@@ -46,7 +46,7 @@ export const ZONES: {
   { id: "pendulum", label: "Pendulum", color: "#000000" },
   { id: "ratchet", label: "Ratchet", color: "#000000" },
   { id: "accents", label: "Small gray parts", color: "#d1d3d5" },
-  { id: "fixed", label: "Hardware (not selectable)", color: "#9aa5af" },
+  { id: "fixed", label: "Stainless hardware (not selectable)", color: "#d4d8dc" },
 ];
 
 // Decide which zone a part belongs to, from its Onshape name.
@@ -62,7 +62,6 @@ export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
 
   if (name.startsWith("Mainspring Barrel")) return "barrel";
   if (name.startsWith("Drive Wheel")) return "driveWheel"; // the large first wheel of the train
-  if (name.startsWith("Shoulder Bolt")) return "accents";
 
   if (/^(2nd|3rd|4th) Wheel/.test(name)) return "goingTrain"; // the going train: 2nd, 3rd and 4th wheels
   if (name.startsWith("Esc Wheel")) return "escWheel";
@@ -75,8 +74,10 @@ export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
   if (name.startsWith("Back")) return "rearFrame";
   if (name.startsWith("Pendant")) return "pendulum";
   if (name.startsWith("Spur gear")) return "ratchet";
-  if (name.startsWith("Hex socket") || name.startsWith("Pendulm Rod")) return "fixed";
-  if (/^\d+mm (Dowel|Tube)/.test(name)) return "fixed"; // bought metal dowels and tube, not printed
+  // Bought stainless hardware: shown as steel, can't be selected or recolored
+  if (name.startsWith("Hex socket") || name.startsWith("Shoulder Bolt")) return "fixed";
+  if (name.startsWith("Pendulm Rod")) return "fixed";
+  if (/^\d+mm (Dowel|Tube)/.test(name)) return "fixed"; // dowel pins and tube
 
   return null; // unknown part: the viewer paints it magenta so it's easy to spot
 }
