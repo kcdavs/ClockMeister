@@ -38,7 +38,7 @@ Part names are matched with a leading "Mirror " ignored (Onshape names the mirro
 - Numerals: the 72 small "Part N" segments, on the front frame — must contrast with the front frame (warning shown)
 - Hands: Hour Hand, Minute Hand
 - Drive wheel (zone `driveWheel`): Drive Wheel (was "Part 4"; the large first wheel of the train)
-- Wheels: 2nd/3rd/4th Wheel — drives site accent `--red`
+- Going train (zone `goingTrain`): 2nd/3rd/4th Wheel — drives site accent `--red`
 - Escape wheel: Esc Wheel — drives site accent `--yellow`; Escape pallet: Esc Pallet
 - Front frame: Front; Rear frame: Back
 - Motion works, each its own zone: Motion works wheel (Motion Works, 89 mm; drives site accent `--blue`), Hour wheel (white Hour Wheel, 112 mm, behind the hands), Minute arbor (Minute Arbor, 32 mm)

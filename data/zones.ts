@@ -10,7 +10,7 @@ export type ZoneId =
   | "numerals"
   | "hands"
   | "driveWheel"
-  | "wheels"
+  | "goingTrain"
   | "escWheel"
   | "escPallet"
   | "frontFrame"
@@ -35,7 +35,7 @@ export const ZONES: {
   { id: "numerals", label: "Numerals", color: "#000000" },
   { id: "hands", label: "Hands", color: "#000000" },
   { id: "driveWheel", label: "Drive wheel", color: "#c12e1f" },
-  { id: "wheels", label: "Wheels", color: "#c12e1f", accent: "--red" },
+  { id: "goingTrain", label: "Going train", color: "#c12e1f", accent: "--red" },
   { id: "escWheel", label: "Escape wheel", color: "#fec600", accent: "--yellow" },
   { id: "escPallet", label: "Escape pallet", color: "#fec600" },
   { id: "frontFrame", label: "Front frame", color: "#ffffff" },
@@ -64,7 +64,7 @@ export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
   if (name.startsWith("Drive Wheel")) return "driveWheel"; // the large first wheel of the train
   if (name.startsWith("Shoulder Bolt")) return "accents";
 
-  if (/^(2nd|3rd|4th) Wheel/.test(name)) return "wheels";
+  if (/^(2nd|3rd|4th) Wheel/.test(name)) return "goingTrain"; // the going train: 2nd, 3rd and 4th wheels
   if (name.startsWith("Esc Wheel")) return "escWheel";
   if (name.startsWith("Esc Pallet")) return "escPallet";
   if (name.startsWith("Hour Hand") || name.startsWith("Minute Hand")) return "hands";
