@@ -42,13 +42,12 @@ export default function Hero() {
         <BuyButton />
       </div>
 
-      {/* A real clock at home. The photo fills the cell (cropped to fit), kept centered on the
-          clock. next/image serves a smaller copy to phones. Location data was stripped. */}
+      {/* A real clock at home: the whole photo, fitted inside this cell.
+          next/image serves a right-sized copy. Location data was stripped from the file. */}
       <div className={styles.window}>
         <Image
           src={roomPhoto}
           alt="A ClockMeister clock hanging on a living room wall beside plants and a big window"
-          fill
           sizes="(max-width: 860px) 100vw, 38vw"
           placeholder="blur"
           className={styles.photo}

@@ -81,14 +81,17 @@
 .presets,
 .window {
   grid-column: 1 / 4;
-  position: relative; /* the photo fills this cell (next/image "fill") */
-  min-height: 12rem;
-  overflow: hidden;
+}
+
+/* The whole room photo, uncropped, fitted inside this cell with a paper margin */
+.window {
+  padding: var(--space-3);
 }
 
 .photo {
-  object-fit: cover; /* fill the cell, cropping the edges instead of stretching */
-  object-position: 72% 30%; /* where the clock is in the photo, so cropping keeps it */
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* Sized so the clock's head (gears, frame, dial — everything but the pendulum) fits on one
@@ -142,6 +145,6 @@
     height: 3rem;
   }
   .window {
-    aspect-ratio: 4 / 3; /* the photo's own shape */
+    padding: var(--space-3);
   }
 }
