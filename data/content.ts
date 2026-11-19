@@ -31,10 +31,6 @@ export const DETAILS = [
     "Running fast or slow? Loosen the grub screws in the pendulum and slide it up to speed up, or down to slow down.",
   ],
   ["Shipping", "Ships within 5 days, anywhere in the US. Included in the price."],
-  [
-    "Returns",
-    "Arrives damaged? We'll replace it. Otherwise, return it within 30 days for a refund; you cover return shipping.",
-  ],
 ];
 
 // How it works: follow the energy from the spring to the hands.
