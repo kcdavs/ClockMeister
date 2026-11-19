@@ -29,10 +29,10 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
       rearFrame: "Jade White",
       motionWheel: "Cyan",
       hourWheel: "Jade White",
-      minuteArbor: "Jade White",
+      minuteArbor: "Cyan",
       pendulum: "Black",
       ratchet: "Black",
-      accents: "Light Gray",
+      accents: "Sunflower Yellow",
     },
   },
   {

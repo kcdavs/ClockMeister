@@ -42,10 +42,10 @@ export const ZONES: {
   { id: "rearFrame", label: "Rear frame", color: "#ffffff" },
   { id: "motionWheel", label: "Motion works wheel", color: "#0086d6", accent: "--blue" },
   { id: "hourWheel", label: "Hour wheel", color: "#ffffff" },
-  { id: "minuteArbor", label: "Minute arbor", color: "#ffffff" },
+  { id: "minuteArbor", label: "Minute arbor", color: "#0086d6" },
   { id: "pendulum", label: "Pendulum", color: "#000000" },
   { id: "ratchet", label: "Ratchet", color: "#000000" },
-  { id: "accents", label: "Small gray parts", color: "#d1d3d5" },
+  { id: "accents", label: "Small accent parts", color: "#fec600" },
   { id: "fixed", label: "Stainless hardware (not selectable)", color: "#d4d8dc" },
 ];
 
