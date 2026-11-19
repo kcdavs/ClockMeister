@@ -29,18 +29,21 @@ const FIT_MARGIN = 1.12; // 1 = clock exactly fills the viewer; bigger = more sp
 const MIN_DISTANCE = 0.05; // closest and farthest the camera can zoom, in meters
 const MAX_DISTANCE = 2.5;
 
-// Exploded view, like lifting the layers of a sandwich: the back frame stays put, the dial (with
-// everything glued to it) slides EXPLODE_TRAVEL meters forward, and the layers in between
-// spread out evenly in their real front-to-back order. Only the frame bolts slide out the back.
-// Meanwhile the clock turns EXPLODE_TURN to a three-quarter view and shrinks to EXPLODE_SCALE.
-const EXPLODE_TRAVEL = 0.2;
-const HANDS_LIFT = 0.15; // the hands lift this much further (× EXPLODE_TRAVEL) off the dial
-const BOLTS_BACK = 0.35; // the frame bolts slide out the back this far (× EXPLODE_TRAVEL)
-const LAYER_GAP = 0.003; // parts closer than 3 mm front-to-back count as one layer
+// Exploded view, like lifting the layers of a sandwich: the back frame stays put, and every
+// printed part lifts out in its real back-to-front order, one per layer, with the same gap
+// (EXPLODE_GAP) between each part's back face and the previous part's front face. The dial, with
+// everything glued to it, goes on top; the hands just above it. Pins and screws stay locked to
+// the part they go through. Only the frame bolts slide out the back.
+// Meanwhile the clock turns EXPLODE_TURN to a three-quarter view and shrinks to fit its box.
+const EXPLODE_GAP = 0.015; // meters between layers
+const HANDS_LIFT = 0.03; // meters the hands lift off the dial
+const BOLTS_BACK = 0.07; // meters the frame bolts slide out the back
+const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
+// Extra room when shrinking the exploded clock to fit: parts nearer the camera look bigger
+// than they measure (perspective), so aim for a bit less than the assembled width
+const EXPLODE_FIT = 0.75;
 // Parts that move as one piece with the dial (front frame)
 const ON_DIAL: (ZoneId | null)[] = ["frontFrame", "numerals", "motionWheel", "hourWheel", "minuteArbor"];
-const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
-const EXPLODE_SCALE = 0.68;
 const EXPLODE_SPEED = 3; // higher = snappier animation
 
 type ModelProps = {
@@ -56,6 +59,88 @@ const pickableZone = (obj: THREE.Object3D) => {
   const zone = obj.userData.zone as ZoneId | null;
   return zone && zone !== "fixed" ? zone : null;
 };
+
+// Works out, once, where every part goes in the exploded view. Stores on each part its home
+// position (userData.home) and its full exploded movement (userData.explode, in the part's
+// parent's coordinates); ClockModel blends between them.
+function planExplode(root: THREE.Object3D) {
+  // The clock's front-to-back axis is its thinnest dimension; the other two are "across"
+  const whole = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
+  const axis = whole.x < whole.y && whole.x < whole.z ? "x" : whole.y < whole.z ? "y" : "z";
+  const [acrossA, acrossB] = (["x", "y", "z"] as const).filter((a) => a !== axis);
+
+  type Part = { mesh: THREE.Mesh; zone: ZoneId | null; box: THREE.Box3; travel?: number };
+  const parts: Part[] = [];
+  root.traverse((obj) => {
+    if (obj instanceof THREE.Mesh && obj.parent)
+      parts.push({ mesh: obj, zone: obj.userData.zone, box: new THREE.Box3().setFromObject(obj) });
+  });
+  const rear = parts.find((p) => p.zone === "rearFrame");
+  const front = parts.find((p) => p.zone === "frontFrame");
+  if (!rear || !front) return;
+
+  // Measure depth so it grows toward the dial: lo = back face, hi = front face
+  const centerOf = (p: Part) => (p.box.min[axis] + p.box.max[axis]) / 2;
+  const sign = Math.sign(centerOf(front) - centerOf(rear)) || 1;
+  const lo = (p: Part) => Math.min(p.box.min[axis] * sign, p.box.max[axis] * sign);
+  const hi = (p: Part) => Math.max(p.box.min[axis] * sign, p.box.max[axis] * sign);
+  const across = (p: Part) =>
+    new THREE.Vector2((p.box.min[acrossA] + p.box.max[acrossA]) / 2, (p.box.min[acrossB] + p.box.max[acrossB]) / 2);
+
+  const onDial = (p: Part) => ON_DIAL.includes(p.zone) || p.mesh.name.startsWith("Hour_Wheel");
+  const isHardware = (p: Part) => p.zone === "fixed";
+
+  // 1. Back frame stays; frame bolts slide out the back
+  rear.travel = 0;
+  for (const p of parts) if (isFrameBolt(p.mesh.name)) p.travel = -BOLTS_BACK;
+
+  // 2. Every other printed part gets its own layer, back to front, stacked with equal gaps,
+  //    starting just in front of the back frame
+  const layers = parts
+    .filter((p) => p !== rear && !isHardware(p) && !onDial(p) && p.zone !== "hands")
+    .sort((a, b) => (lo(a) + hi(a)) - (lo(b) + hi(b)));
+  let cursor = hi(rear) + EXPLODE_GAP; // where the next part's back face goes
+  for (const p of layers) {
+    p.travel = cursor - lo(p);
+    cursor = hi(p) + p.travel + EXPLODE_GAP;
+  }
+
+  // 3. The dial and everything glued to it go on top; the hands lift just off it
+  const dial = parts.filter(onDial);
+  const dialTravel = cursor - Math.min(...dial.map(lo));
+  for (const p of dial) p.travel = dialTravel;
+  for (const p of parts) if (p.zone === "hands") p.travel = dialTravel + HANDS_LIFT;
+
+  // 4. Pins, tube and small screws stay locked to the printed part they go through:
+  //    first choice, a part centered on the pin (a gear on its arbor); otherwise the
+  //    smallest part the screw sits inside. The pendulum rod goes with the pendulum.
+  const printed = parts.filter((p) => !isHardware(p) && p !== rear && p !== front);
+  for (const pin of parts.filter((p) => isHardware(p) && p.travel === undefined)) {
+    const overlaps = (p: Part) => Math.min(hi(p), hi(pin)) - Math.max(lo(p), lo(pin));
+    const offCenter = (p: Part) => across(p).distanceTo(across(pin));
+    const size = (p: Part) => (p.box.max[acrossA] - p.box.min[acrossA]) * (p.box.max[acrossB] - p.box.min[acrossB]);
+    const inside = (p: Part) => {
+      const c = across(pin);
+      return c.x > p.box.min[acrossA] && c.x < p.box.max[acrossA] && c.y > p.box.min[acrossB] && c.y < p.box.max[acrossB];
+    };
+    const host =
+      (pin.mesh.name.startsWith("Pendulm") && parts.find((p) => p.zone === "pendulum")) ||
+      printed
+        .filter((p) => offCenter(p) < 0.01 && overlaps(p) > 0)
+        .sort((a, b) => offCenter(a) - offCenter(b) || overlaps(b) - overlaps(a))[0] ||
+      printed.filter((p) => inside(p) && overlaps(p) > 0).sort((a, b) => size(a) - size(b))[0];
+    pin.travel = host?.travel ?? 0;
+  }
+
+  // Store each part's home and its movement, converted into its parent's coordinates
+  for (const p of parts) {
+    const move = new THREE.Vector3().setComponent("xyz".indexOf(axis), sign * (p.travel ?? 0));
+    p.mesh.userData.home = p.mesh.position.clone();
+    p.mesh.userData.explode = p.mesh.parent!
+      .worldToLocal(move)
+      .sub(p.mesh.parent!.worldToLocal(new THREE.Vector3()));
+  }
+}
 
 // Loads the model once, gives every part its own material, and tags it with its zone.
 function ClockModel({ explodeAmount, colors, hovered, onHover, onPick }: ModelProps) {
@@ -101,67 +186,8 @@ function ClockModel({ explodeAmount, colors, hovered, onHover, onPick }: ModelPr
       obj.add(edges);
     });
 
-    // For the exploded view: find the clock's front-to-back axis (its thinnest dimension), then
-    // record for every part its home position and how far, and which way, it should slide.
     root.updateMatrixWorld(true);
-    const whole = new THREE.Box3().setFromObject(root);
-    const size = whole.getSize(new THREE.Vector3());
-    const axis = size.x < size.y && size.x < size.z ? "x" : size.y < size.z ? "y" : "z";
-    const depthOf = (obj: THREE.Object3D) =>
-      new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3())[axis];
-    const find = (zone: ZoneId) => {
-      let found: THREE.Object3D = root;
-      root.traverse((obj) => {
-        if (obj.userData.zone === zone) found = obj;
-      });
-      return found;
-    };
-    // The back frame is a deep tray that the gears sit in, so measure from its back wall
-    // (the side farthest from the dial) to the middle of the dial.
-    const front = depthOf(find("frontFrame"));
-    const backBox = new THREE.Box3().setFromObject(find("rearFrame"));
-    const back = front > depthOf(find("rearFrame")) ? backBox.min[axis] : backBox.max[axis];
-    const place = (obj: THREE.Object3D) => (depthOf(obj) - back) / (front - back); // 0 = back wall, 1 = dial
-
-    // Where each part ends up in the stack (0 = stays put, 1 = moves with the dial)
-    const parts: THREE.Mesh[] = [];
-    root.traverse((obj) => obj instanceof THREE.Mesh && obj.parent && parts.push(obj));
-    const stack = new Map<THREE.Mesh, number>();
-    const layered: THREE.Mesh[] = []; // the gears etc. that get evenly spaced layers
-    for (const part of parts) {
-      const zone = part.userData.zone as ZoneId | null;
-      if (zone === "rearFrame") stack.set(part, 0);
-      else if (isFrameBolt(part.name)) stack.set(part, -BOLTS_BACK);
-      else if (zone === "hands") stack.set(part, 1 + HANDS_LIFT);
-      // the gray "Hour Wheel" is in the accents zone but belongs to the hour wheel on the dial
-      else if (ON_DIAL.includes(zone) || part.name.startsWith("Hour_Wheel")) stack.set(part, 1);
-      // small hardware (pins, tube, small screws) stays near the parts it holds, without
-      // taking up a layer of its own
-      else if (zone === "fixed") stack.set(part, THREE.MathUtils.clamp(place(part), 0, 1));
-      else layered.push(part);
-    }
-    // Sort the rest back to front, group parts at (nearly) the same depth into one layer, and
-    // spread the layers evenly between the back frame (0) and the dial (1)
-    layered.sort((a, b) => place(a) - place(b));
-    const layers: THREE.Mesh[][] = [];
-    for (const part of layered) {
-      const last = layers[layers.length - 1];
-      const sameLayer = last && Math.abs(depthOf(part) - depthOf(last[0])) < LAYER_GAP;
-      if (sameLayer) last.push(part);
-      else layers.push([part]);
-    }
-    layers.forEach((layer, i) => layer.forEach((part) => stack.set(part, (i + 1) / (layers.length + 1))));
-
-    const forward = new THREE.Vector3().setComponent("xyz".indexOf(axis), Math.sign(front - back));
-    for (const part of parts) {
-      const travel = (stack.get(part) ?? 0) * EXPLODE_TRAVEL;
-      // The same movement, expressed in the part's own parent's coordinates
-      const local = part.parent!
-        .worldToLocal(forward.clone().multiplyScalar(travel))
-        .sub(part.parent!.worldToLocal(new THREE.Vector3()));
-      part.userData.home = part.position.clone();
-      part.userData.explode = local;
-    }
+    planExplode(root);
     return root;
   }, [scene, steelReflections]);
 
@@ -454,28 +480,38 @@ function ExplodeAnimator({
   amountRef: React.RefObject<number>;
   goal: number; // 0–1, from the slider
 }) {
-  const halfHeight = useRef<number | null>(null); // measured once, while assembled
+  const assembled = useRef<{ width: number; halfHeight: number } | null>(null); // measured once
 
   useFrame((_, delta) => {
     const clock = targetRef.current;
     if (amountRef.current === goal || !clock) return;
-    if (halfHeight.current === null) {
-      halfHeight.current = new THREE.Box3().setFromObject(clock).getSize(new THREE.Vector3()).y / 2;
+    const box = new THREE.Box3();
+    const size = new THREE.Vector3();
+    if (!assembled.current) {
+      box.setFromObject(clock).getSize(size);
+      assembled.current = { width: size.x, halfHeight: size.y / 2 };
     }
     // damp = smooth approach that slows down near the end; snap when close enough
     let t = THREE.MathUtils.damp(amountRef.current, goal, EXPLODE_SPEED, delta);
     if (Math.abs(t - goal) < 0.001) t = goal;
     amountRef.current = t;
-    const scale = 1 + (EXPLODE_SCALE - 1) * t;
+
+    // Turn, then measure how wide the (partly) exploded clock is at full size, and shrink it
+    // just enough to stay as wide as the assembled clock, so it always fits its box
     clock.rotation.y = Math.PI + EXPLODE_TURN * t;
-    clock.scale.setScalar(scale);
-    clock.position.y = halfHeight.current * (1 - scale); // shrink toward the top, not the middle,
-    // so the gears and dial stay where they were on screen
-    // The stack grows forward only, so keep it centered left-to-right as it turns
-    clock.position.x = 0;
+    clock.scale.setScalar(1);
+    clock.position.set(0, 0, 0);
     clock.updateMatrixWorld(true);
-    clock.position.x = -new THREE.Box3().setFromObject(clock).getCenter(new THREE.Vector3()).x;
+    box.setFromObject(clock);
+    const fit = (assembled.current.width / box.getSize(size).x) * (1 - (1 - EXPLODE_FIT) * t);
+    const scale = Math.min(1, fit);
+    const centerX = box.getCenter(new THREE.Vector3()).x;
+    clock.scale.setScalar(scale);
+    // Shrink toward (just below) the top, so the gears and dial stay on screen, and keep
+    // it centered left-to-right (the stack only grows forward)
+    clock.position.set(-centerX * scale, 0.85 * assembled.current.halfHeight * (1 - scale), 0);
   });
+
   return null;
 }
 
