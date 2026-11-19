@@ -14,6 +14,7 @@ export default function SiteHeader() {
       <nav className={`${styles.nav} label`}>
         <Link href="/#how">How it works</Link>
         <Link href="/#specs">Specs</Link>
+        <Link href="/#faq">FAQ</Link>
       </nav>
       <Link href="/#configure" className={`${styles.cta} label`}>
         Configure

@@ -1,0 +1,159 @@
+/* Shared layout for the home page's content sections (How it works, Specs, FAQ).
+   Each section is a row of the same black-rule grid as the hero:
+     ┌──────────────┬──────────────────────────────┐
+     │ 01           │ content                      │
+     │ Heading      │                              │
+     └──────────────┴──────────────────────────────┘
+   Same columns as the hero (2fr 1fr 3fr | 10fr), with the heading spanning the first three,
+   so the vertical line continues straight down the page. */
+.section {
+  display: grid;
+  grid-template-columns: 2fr 1fr 3fr 10fr;
+  gap: var(--rule);
+  background: var(--ink);
+  border-bottom: var(--rule) solid var(--ink);
+  scroll-margin-top: 4rem; /* header links (/#how) stop just below the top bar */
+}
+
+.section > * {
+  background: var(--paper);
+}
+
+.heading {
+  grid-column: 1 / 4;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.intro {
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 30ch;
+}
+
+.body {
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+/* How it works: a 2 × 2 grid of steps, ruled like everything else */
+.steps {
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--rule);
+  background: var(--ink);
+}
+
+.step {
+  background: var(--paper);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stepHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.square {
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: background-color 0.4s; /* fades along with the clock's colors */
+}
+
+.stepTitle {
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.text {
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 46ch;
+}
+
+/* Specs and FAQ: rows separated by thin ink lines */
+.rows {
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: var(--space-2);
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--ink);
+  line-height: 1.5;
+}
+
+/* FAQ: <details> opens and closes without any JavaScript */
+.question {
+  border-bottom: 1px solid var(--ink);
+}
+
+.question summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 1rem 0;
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+
+.question summary::-webkit-details-marker {
+  display: none; /* Safari's own triangle */
+}
+
+.question summary::after {
+  content: "+";
+  font-family: var(--font-mono);
+}
+
+.question[open] summary::after {
+  content: "–";
+}
+
+.question p {
+  padding-bottom: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+@media (max-width: 860px) {
+  .section {
+    grid-template-columns: 1fr;
+  }
+  .heading {
+    grid-column: auto;
+    padding: var(--space-4) var(--space-3) var(--space-3);
+  }
+  .body,
+  .step {
+    padding: var(--space-3);
+  }
+  .steps {
+    padding: 0;
+    grid-template-columns: 1fr;
+  }
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}
