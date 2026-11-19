@@ -14,6 +14,7 @@ import { Center, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { ZONES, ZoneId, isFrameBolt, zoneForPart } from "@/data/zones";
+import { stackIndex } from "@/data/explode";
 import { DESIGN_MODE, nameFor } from "@/lib/colors";
 import { Colors, useClockColors } from "./ClockColors";
 import PartPicker, { PICKER_WIDTH } from "./PartPicker";
@@ -30,7 +31,7 @@ const MIN_DISTANCE = 0.05; // closest and farthest the camera can zoom, in meter
 const MAX_DISTANCE = 2.5;
 
 // Exploded view, like lifting the layers of a sandwich: the back frame stays put, and every
-// printed part lifts out in its real back-to-front order, one per layer, with the same gap
+// printed part lifts out in its assembly order (data/explode.ts), one per layer, with the same gap
 // (EXPLODE_GAP) between each part's back face and the previous part's front face: first the
 // going train, then the time train, then the dial (numerals printed on it), and the hands on top.
 // Pins and screws stay locked to the part they go through. Only the frame bolts go out the back.
@@ -106,11 +107,16 @@ function planExplode(root: THREE.Object3D) {
   rear.travel = 0;
   for (const p of parts) if (isFrameBolt(p.mesh.name)) p.travel = -BOLTS_BACK;
 
-  // 2. The going train etc.: every other printed part gets its own layer, back to front,
-  //    starting just in front of the back frame
+  // 2. The going train etc.: every other printed part gets its own layer, in the owner's
+  //    assembly order (data/explode.ts; unlisted parts after, by depth), starting just in
+  //    front of the back frame
+  const order = (p: Part) => {
+    const i = stackIndex(p.mesh.name);
+    return i < 0 ? Infinity : i;
+  };
   const train = parts
     .filter((p) => p !== rear && !isHardware(p) && !onDial(p) && !inTimeTrain(p) && p.zone !== "hands")
-    .sort(byDepth);
+    .sort((a, b) => order(a) - order(b) || byDepth(a, b));
   let cursor = stack(train, hi(rear) + EXPLODE_GAP);
 
   // 3. The time train (each part its own layer), then the dial with its numerals as one
