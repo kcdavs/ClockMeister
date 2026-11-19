@@ -33,17 +33,17 @@ The owner is learning web development through this project (background: data ana
 Source: Onshape "Right Assembly" (the whole clock; a mirrored left version exists but isn't used). 105 parts, ~322k triangles (2026-11-18 export; added 7× 3mm Dowel, a 5mm Tube and 4 M4 screws, all fixed hardware).
 Optimization took it from 27.7 MB / 11,261 draw pieces to 2.0 MB / 93 pieces, no detail lost.
 
-Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 15 selectable zones + fixed:
-- Mainspring barrel (zone id `barrel`): Part 3, unnamed in Onshape (was wrongly called "Face"; owner to rename it "Mainspring Barrel", which the rules already accept)
+Part names are matched with a leading "Mirror " ignored (Onshape names the mirrored copies that way; the owner also has non-mirrored versions). Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 15 selectable zones + fixed:
+- Mainspring barrel (zone `barrel`): Mainspring Barrel (was the unnamed "Part 3", once wrongly called "Face")
 - Numerals: the 72 small "Part N" segments, on the front frame — must contrast with the front frame (warning shown)
 - Hands: Hour Hand, Minute Hand
-- Main wheel: Part 4 (the large first wheel of the train)
+- Drive wheel (zone `driveWheel`): Drive Wheel (was "Part 4"; the large first wheel of the train)
 - Wheels: 2nd/3rd/4th Wheel — drives site accent `--red`
-- Escape wheel: Mirror Esc Wheel — drives site accent `--yellow`; Escape pallet: Mirror Esc Pallet
-- Front frame: Mirror Front; Rear frame: Mirror Back
+- Escape wheel: Esc Wheel — drives site accent `--yellow`; Escape pallet: Esc Pallet
+- Front frame: Front; Rear frame: Back
 - Motion works, each its own zone: Motion works wheel (Motion Works, 89 mm; drives site accent `--blue`), Hour wheel (white Hour Wheel, 112 mm, behind the hands), Minute arbor (Minute Arbor, 32 mm)
 - Pendulum: Pendant; Ratchet: Spur gear (9 teeth) (owner to confirm ratchet guess)
-- Small gray parts: Hour Wheel (gray), Part 2 (owner to confirm where these belong)
+- Small gray parts: Hour Wheel (gray), Shoulder Bolt (was "Part 2"; owner to confirm whether the bolt is printed or bought hardware)
 - Fixed (not selectable): M3/M4 screws, Pendulm Rod, 3mm dowels, 5mm tube
 Known issue: two parts are both named "Hour Wheel" (white and gray). Rename the gray one in Onshape on next export; until then distinguish by material color.
 Test the mapping without a browser: a Node script loading the GLB with three's GLTFLoader + MeshoptDecoder and running `zoneForPart` on every mesh (Node 25 imports .ts directly).

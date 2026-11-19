@@ -9,7 +9,7 @@ export type ZoneId =
   | "barrel"
   | "numerals"
   | "hands"
-  | "mainWheel"
+  | "driveWheel"
   | "wheels"
   | "escWheel"
   | "escPallet"
@@ -34,7 +34,7 @@ export const ZONES: {
   { id: "barrel", label: "Mainspring barrel", color: "#ffffff" },
   { id: "numerals", label: "Numerals", color: "#000000" },
   { id: "hands", label: "Hands", color: "#000000" },
-  { id: "mainWheel", label: "Main wheel", color: "#c12e1f" },
+  { id: "driveWheel", label: "Drive wheel", color: "#c12e1f" },
   { id: "wheels", label: "Wheels", color: "#c12e1f", accent: "--red" },
   { id: "escWheel", label: "Escape wheel", color: "#fec600", accent: "--yellow" },
   { id: "escPallet", label: "Escape pallet", color: "#fec600" },
@@ -52,25 +52,27 @@ export const ZONES: {
 // Decide which zone a part belongs to, from its Onshape name.
 // three.js rewrites names slightly ("Part 3" becomes "Part_3"; a repeated name gets "_1" added),
 // so we turn underscores back into spaces and match on how the name starts.
+// A leading "Mirror " is dropped: it only marks the mirrored copy of a part in Onshape,
+// so "Front" and "Front" are the same part.
 // isGray tells apart the two parts that are both named "Hour Wheel".
 export function zoneForPart(rawName: string, isGray: boolean): ZoneId | null {
-  const name = rawName.replace(/_/g, " ");
+  const name = rawName.replace(/_/g, " ").replace(/^Mirror /, "");
 
-  // Part 3 is the mainspring barrel (unnamed in Onshape); accept its real name once renamed
-  if (name === "Part 3" || name.startsWith("Mainspring Barrel")) return "barrel";
-  if (name === "Part 4") return "mainWheel"; // the large first wheel of the train
-  if (name === "Part 2") return "accents";
-  if (/^Part \d+$/.test(name)) return "numerals"; // all other unnamed parts are numeral segments
+  if (/^Part \d+$/.test(name)) return "numerals"; // unnamed parts are the numeral segments
+
+  if (name.startsWith("Mainspring Barrel")) return "barrel";
+  if (name.startsWith("Drive Wheel")) return "driveWheel"; // the large first wheel of the train
+  if (name.startsWith("Shoulder Bolt")) return "accents";
 
   if (/^(2nd|3rd|4th) Wheel/.test(name)) return "wheels";
-  if (name.startsWith("Mirror Esc Wheel")) return "escWheel";
-  if (name.startsWith("Mirror Esc Pallet")) return "escPallet";
+  if (name.startsWith("Esc Wheel")) return "escWheel";
+  if (name.startsWith("Esc Pallet")) return "escPallet";
   if (name.startsWith("Hour Hand") || name.startsWith("Minute Hand")) return "hands";
   if (name.startsWith("Hour Wheel")) return isGray ? "accents" : "hourWheel";
   if (name.startsWith("Motion Works")) return "motionWheel";
   if (name.startsWith("Minute Arbor")) return "minuteArbor";
-  if (name.startsWith("Mirror Front")) return "frontFrame";
-  if (name.startsWith("Mirror Back")) return "rearFrame";
+  if (name.startsWith("Front")) return "frontFrame";
+  if (name.startsWith("Back")) return "rearFrame";
   if (name.startsWith("Pendant")) return "pendulum";
   if (name.startsWith("Spur gear")) return "ratchet";
   if (name.startsWith("Hex socket") || name.startsWith("Pendulm Rod")) return "fixed";
