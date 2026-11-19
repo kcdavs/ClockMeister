@@ -61,7 +61,8 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - Presets: `data/presets.ts`, in button order (most colors first): Mondrian (= the default clock), Ravens, Maryland, Pink (owner-picked), Orioles. Each names a filament per zone by its exact name, plus a `strip` of filament names for the button's color squares (no duplicates); a misspelling fails the build. Buttons in `components/Presets.tsx`, in a hero sidebar cell under the specs (above the clock on phones). Owner will fine-tune the schemes.
 - Design mode (`npm run dev` only, via `DESIGN_MODE` in `lib/colors.ts`): free color picker in each popup and a "Copy colors" button. Hidden in production.
 - Unmapped parts render magenta (`#ff00ff`) and log a console warning.
-- Future ideas: exploded view animation (also as hero background); Santos-inspired line illustration revealed through the empty sidebar "window" cell with a fixed-background effect (must work on iOS, so not plain `background-attachment: fixed`).
+- Exploded view (2026-11-18): an "Assembled ↔ Exploded" slider. ClockModel records each part's home position and slides it along the clock's thinnest axis (front-to-back), EXPLODE_SPREAD (3) × its distance from the middle, so layers keep their real order; numerals use the front frame's depth so they stay on the dial. `ExplodeAnimator` eases toward the slider value and turns the clock EXPLODE_TURN (40°), shrinking it to EXPLODE_SCALE (0.68) anchored at the top so the head stays on screen. `<Center>` sits inside the turning group so it turns in place. Built from the GLB alone, no Onshape exploded view needed. The slider sticks to the bottom of the screen (`position: sticky` inside a full-height track; needs `.viewer { overflow: clip }`, not hidden).
+- Future ideas: exploded view playing on its own as a hero background; Santos-inspired line illustration revealed through the empty sidebar "window" cell with a fixed-background effect (must work on iOS, so not plain `background-attachment: fixed`).
 
 ## Design
 - Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, red/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
@@ -97,6 +98,6 @@ Owner's current to-do list (2026-11-18):
 ## Notes
 - Live site: https://www.clockmeisterclocks.com (also https://clock-meister.vercel.app; Vercel Hobby plan; auto-deploys on every push to main). The bare domain redirects to www.
 - FitCamera must depend on size.width/height only, not the whole `size` (it includes page position, which changes on scroll and would reset the view).
-- The viewer is `position: absolute` inside the `.viewer` cell (which has `position: relative; overflow: hidden`). Keep it that way: when the canvas could size the cell, Safari grew both forever (endless zoom/pan). Test Safari with Playwright WebKit, not only Chrome.
+- The viewer is `position: absolute` inside the `.viewer` cell (which has `position: relative; overflow: clip` — clip, not hidden, so the explode slider can be sticky). Keep it that way: when the canvas could size the cell, Safari grew both forever (endless zoom/pan). Test Safari with Playwright WebKit, not only Chrome.
 - Commit author is set per-repo: kcdavs / GitHub noreply address.
 - `npm audit` reports 7 moderate issues in dev-only tooling (eslint's dependencies); not shipped to the site.

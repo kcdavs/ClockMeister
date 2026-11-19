@@ -9,7 +9,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Canvas, ThreeEvent, useThree } from "@react-three/fiber";
+import { Canvas, ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import { Center, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
@@ -29,7 +29,16 @@ const FIT_MARGIN = 1.12; // 1 = clock exactly fills the viewer; bigger = more sp
 const MIN_DISTANCE = 0.05; // closest and farthest the camera can zoom, in meters
 const MAX_DISTANCE = 2.5;
 
+// Exploded view: each part slides front-to-back, EXPLODE_SPREAD times as far as it already sits
+// from the clock's middle (so layers keep their real order), while the clock turns EXPLODE_TURN
+// to a three-quarter view and shrinks to EXPLODE_SCALE so the deeper clock still fits.
+const EXPLODE_SPREAD = 3;
+const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
+const EXPLODE_SCALE = 0.68;
+const EXPLODE_SPEED = 3; // higher = snappier animation
+
 type ModelProps = {
+  explodeAmount: React.RefObject<number>; // 0 = assembled, 1 = fully exploded
   colors: Colors;
   hovered: ZoneId | null;
   onHover: (zone: ZoneId | null) => void;
@@ -43,7 +52,7 @@ const pickableZone = (obj: THREE.Object3D) => {
 };
 
 // Loads the model once, gives every part its own material, and tags it with its zone.
-function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
+function ClockModel({ explodeAmount, colors, hovered, onHover, onPick }: ModelProps) {
   const { scene } = useGLTF(MODEL_URL);
 
   // Metal only looks like metal if it has something to reflect. This builds a soft, blurred
@@ -85,6 +94,31 @@ function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
       edges.raycast = () => {}; // outlines shouldn't catch clicks; the part underneath should
       obj.add(edges);
     });
+
+    // For the exploded view: find the clock's front-to-back axis (its thinnest dimension), then
+    // record for every part its home position and how far, and which way, it should slide.
+    root.updateMatrixWorld(true);
+    const whole = new THREE.Box3().setFromObject(root);
+    const size = whole.getSize(new THREE.Vector3());
+    const axis = size.x < size.y && size.x < size.z ? "x" : size.y < size.z ? "y" : "z";
+    const middle = whole.getCenter(new THREE.Vector3())[axis];
+    const depthOf = (obj: THREE.Object3D) =>
+      new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3())[axis];
+    // The numerals and tick marks are printed onto the dial (front frame): they move with it
+    let dialDepth: number | null = null;
+    root.traverse((obj) => {
+      if (obj.userData.zone === "frontFrame") dialDepth = depthOf(obj);
+    });
+    root.traverse((obj) => {
+      if (!(obj instanceof THREE.Mesh) || !obj.parent) return;
+      const depth =
+        obj.userData.zone === "numerals" && dialDepth !== null ? dialDepth : depthOf(obj);
+      // One meter along the axis, expressed in the part's own parent's coordinates
+      const step = new THREE.Vector3().setComponent("xyz".indexOf(axis), 1);
+      const local = obj.parent.worldToLocal(step.clone()).sub(obj.parent.worldToLocal(new THREE.Vector3()));
+      obj.userData.home = obj.position.clone();
+      obj.userData.explode = local.multiplyScalar((depth - middle) * EXPLODE_SPREAD);
+    });
     return root;
   }, [scene, steelReflections]);
 
@@ -100,6 +134,17 @@ function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
       material.emissiveIntensity = HOVER_GLOW;
     });
   }, [model, colors, hovered]);
+
+  // Every frame: place each part between home and its exploded position.
+  const applied = useRef(0);
+  useFrame(() => {
+    const t = explodeAmount.current;
+    if (Math.abs(t - applied.current) < 1e-4) return; // nothing moving: skip the work
+    applied.current = t;
+    model.traverse((obj) => {
+      if (obj.userData.home) obj.position.copy(obj.userData.home).addScaledVector(obj.userData.explode, t);
+    });
+  });
 
   return (
     <primitive
@@ -127,6 +172,11 @@ export default function ClockViewer() {
   // Each click of "Reset view" bumps this number, which tells FitCamera to re-frame the clock.
   const clockRef = useRef<THREE.Group>(null);
   const [resetCount, setResetCount] = useState(0);
+
+  // Exploded view: the slider's value (0 = assembled, 1 = fully exploded), and where the
+  // animation currently is on its way there (updated every frame, so a ref, not state)
+  const [explode, setExplode] = useState(0);
+  const explodeAmount = useRef(0);
 
   // Mouse: "click to explore". Until you click the clock, the scroll wheel moves the page;
   // after that it zooms, until the mouse leaves the viewer.
@@ -200,22 +250,25 @@ export default function ClockViewer() {
 
         {/* Suspense shows nothing until the model has downloaded */}
         <Suspense fallback={null}>
-          {/* Center puts the clock in the middle; FitCamera moves the camera so it fills the view */}
-          <Center>
-            {/* Onshape exports with Z pointing up; three.js uses Y as up, so stand the clock
-                upright (inner group), then turn it around so the face is toward us (outer group) */}
-            <group ref={clockRef} rotation={[0, Math.PI, 0]}>
+          {/* Onshape exports with Z pointing up; three.js uses Y as up, so stand the clock
+              upright (inner group), then turn it around so the face is toward us (outer group).
+              Center (inside the turning group) puts the clock's middle at the pivot, so the
+              exploded view turns it in place. FitCamera moves the camera so it fills the view. */}
+          <group ref={clockRef} rotation={[0, Math.PI, 0]}>
+            <Center>
               <group rotation={[-Math.PI / 2, 0, 0]}>
                 <ClockModel
+                  explodeAmount={explodeAmount}
                   colors={colors}
                   hovered={hovered}
                   onHover={setHovered}
                   onPick={openPicker}
                 />
               </group>
-            </group>
-          </Center>
+            </Center>
+          </group>
           <FitCamera target={clockRef} signal={resetCount} />
+          <ExplodeAnimator targetRef={clockRef} amountRef={explodeAmount} goal={explode} />
           {touch && <TwoFingerGestures />}
         </Suspense>
 
@@ -253,6 +306,25 @@ export default function ClockViewer() {
           Reset view
         </button>
       </div>
+      {/* Exploded-view slider. The track is the full height of the viewer; the bar inside
+          sticks to the bottom of the screen, so it's visible even when the viewer is taller
+          than the screen. */}
+      <div className={styles.explodeTrack}>
+        <label className={`${styles.explode} label`}>
+          Assembled
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={explode}
+            onChange={(e) => setExplode(Number(e.target.value))}
+            aria-label="Exploded view"
+          />
+          Exploded
+        </label>
+      </div>
+
       <p className={`${styles.hint} label`}>
         {touch
           ? "Tap a part to recolor · Pinch to zoom"
@@ -325,6 +397,38 @@ function FitCamera({
     orbit?.update();
   }, [get, width, height, controls, target, signal]);
 
+  return null;
+}
+
+// Eases the exploded-view amount toward the slider's value each frame (so dragging feels
+// smooth), and turns and shrinks the whole clock with it (ClockModel moves the parts).
+function ExplodeAnimator({
+  targetRef,
+  amountRef,
+  goal,
+}: {
+  targetRef: React.RefObject<THREE.Group | null>;
+  amountRef: React.RefObject<number>;
+  goal: number; // 0–1, from the slider
+}) {
+  const halfHeight = useRef<number | null>(null); // measured once, while assembled
+
+  useFrame((_, delta) => {
+    const clock = targetRef.current;
+    if (amountRef.current === goal || !clock) return;
+    if (halfHeight.current === null) {
+      halfHeight.current = new THREE.Box3().setFromObject(clock).getSize(new THREE.Vector3()).y / 2;
+    }
+    // damp = smooth approach that slows down near the end; snap when close enough
+    let t = THREE.MathUtils.damp(amountRef.current, goal, EXPLODE_SPEED, delta);
+    if (Math.abs(t - goal) < 0.001) t = goal;
+    amountRef.current = t;
+    const scale = 1 + (EXPLODE_SCALE - 1) * t;
+    clock.rotation.y = Math.PI + EXPLODE_TURN * t;
+    clock.scale.setScalar(scale);
+    clock.position.y = halfHeight.current * (1 - scale); // shrink toward the top, not the middle,
+    // so the gears and dial stay where they were on screen
+  });
   return null;
 }
 

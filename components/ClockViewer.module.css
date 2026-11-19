@@ -29,6 +29,41 @@
   touch-action: pan-y !important;
 }
 
+/* Exploded-view slider. The track covers the viewer (clicks pass through it) and pushes the
+   bar to its bottom; position: sticky then holds the bar at the bottom of the screen while
+   the viewer's bottom is still below it. (Needs .viewer to use overflow: clip, not hidden.) */
+.explodeTrack {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: none;
+}
+
+.explode {
+  position: sticky;
+  bottom: var(--space-2);
+  margin-bottom: var(--space-2);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 0.45rem 0.9rem;
+  max-width: calc(100% - 2 * var(--space-2)); /* never wider than the viewer */
+}
+
+.explode input {
+  width: 16rem;
+  min-width: 0;
+  flex: 0 1 auto; /* shrinks on narrow screens */
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
 /* At the top, because the viewer can be taller than the screen */
 .hint {
   position: absolute;
@@ -40,6 +75,10 @@
 
 /* Phones: hint at the bottom so it doesn't collide with the buttons */
 @media (max-width: 560px) {
+  .explode {
+    margin-bottom: 2.75rem; /* leave room for the hint under it */
+    gap: var(--space-1);
+  }
   .hint {
     top: auto;
     bottom: var(--space-2);
