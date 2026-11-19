@@ -1,6 +1,6 @@
 // Color zones: groups of clock parts that the customer colors together.
-// Default colors match the site palette so the default clock and the site agree.
-// Stage 6 swaps these for real filament colors.
+// Default colors are real Bambu Lab PLA Basic filaments (see data/filaments.json), chosen to
+// match the site palette so the default clock and the site agree. Presets: data/presets.ts.
 //
 // `accent` links a zone to a site color variable: when the customer recolors that zone,
 // the matching blocks, buttons and browser toolbar on the site recolor too.
@@ -31,21 +31,21 @@ export const ZONES: {
   color: string;
   accent?: Accent;
 }[] = [
-  { id: "face", label: "Face", color: "#f2b705", accent: "--yellow" },
-  { id: "numerals", label: "Numerals", color: "#111111" },
-  { id: "hands", label: "Hands", color: "#111111" },
-  { id: "mainWheel", label: "Main wheel", color: "#9b1c2e" },
-  { id: "wheels", label: "Wheels", color: "#9b1c2e", accent: "--red" },
-  { id: "escWheel", label: "Escape wheel", color: "#1f4fa3", accent: "--blue" },
-  { id: "escPallet", label: "Escape pallet", color: "#1f4fa3" },
-  { id: "frontFrame", label: "Front frame", color: "#eaeaea" },
-  { id: "rearFrame", label: "Rear frame", color: "#eaeaea" },
-  { id: "motionWheel", label: "Motion works wheel", color: "#eaeaea" },
-  { id: "hourWheel", label: "Hour wheel", color: "#eaeaea" },
-  { id: "minuteArbor", label: "Minute arbor", color: "#eaeaea" },
-  { id: "pendulum", label: "Pendulum", color: "#9dcfed" },
-  { id: "ratchet", label: "Ratchet", color: "#9dcfed" },
-  { id: "accents", label: "Small gray parts", color: "#a5a5a5" },
+  { id: "face", label: "Face", color: "#fec600", accent: "--yellow" },
+  { id: "numerals", label: "Numerals", color: "#000000" },
+  { id: "hands", label: "Hands", color: "#000000" },
+  { id: "mainWheel", label: "Main wheel", color: "#9d2235" },
+  { id: "wheels", label: "Wheels", color: "#9d2235", accent: "--red" },
+  { id: "escWheel", label: "Escape wheel", color: "#0056b8", accent: "--blue" },
+  { id: "escPallet", label: "Escape pallet", color: "#0056b8" },
+  { id: "frontFrame", label: "Front frame", color: "#d1d3d5" },
+  { id: "rearFrame", label: "Rear frame", color: "#d1d3d5" },
+  { id: "motionWheel", label: "Motion works wheel", color: "#d1d3d5" },
+  { id: "hourWheel", label: "Hour wheel", color: "#d1d3d5" },
+  { id: "minuteArbor", label: "Minute arbor", color: "#d1d3d5" },
+  { id: "pendulum", label: "Pendulum", color: "#0086d6" },
+  { id: "ratchet", label: "Ratchet", color: "#0086d6" },
+  { id: "accents", label: "Small gray parts", color: "#8e9089" },
   { id: "fixed", label: "Hardware (not selectable)", color: "#9aa5af" },
 ];
 

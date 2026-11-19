@@ -55,7 +55,9 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - "Click / tap to explore": zoom (and on touch devices, rotation) is off until the visitor clicks/taps the clock, so the page scrolls over it. Mouse: ends on pointer leave. Touch: ends on a tap outside. `.idle canvas { touch-action: pan-y }` lets fingers scroll the page.
 - Configurator = click a part: hover glows the whole zone, click (not drag; `e.delta > 4` = drag) opens `components/PartPicker.tsx` with filament swatches. On narrow screens (<560px) the picker is a full-width bottom sheet.
 - Shared color store: `components/ClockColors.tsx` (React context). Updating colors also rewrites the site accent CSS variables (`--red/--blue/--yellow` and `--red-text` for readable button text) and the browser theme-color meta tag.
-- Filaments: `data/filaments.json` (id, name, hex) — currently a PLACEHOLDER list; replace with the owner's real spools.
+- Filaments: `data/filaments.json` (id, name, hex) — the 30 solid Bambu Lab PLA Basic colors, hex codes from Bambu Studio's `resources/profiles/BBL/filament/filaments_color_codes.json` (gradients left out). Zone defaults in `data/zones.ts` use these hexes.
+- Presets: `data/presets.ts` (ClockMeister default, Maryland, Pink, Orioles, Ravens) name a filament per zone by its exact name; a misspelling fails the build. Buttons in `components/Presets.tsx`, in a hero sidebar cell under the specs (above the clock on phones). Owner will fine-tune the schemes.
+- The numerals visually sit on the front frame (the big plate), so readability depends on numerals vs. front frame; the picker's contrast warning still compares numerals vs. face (to revisit).
 - Design mode (`npm run dev` only, via `DESIGN_MODE` in `lib/colors.ts`): free color picker in each popup and a "Copy colors" button. Hidden in production.
 - Unmapped parts render magenta (`#ff00ff`) and log a console warning.
 - Future ideas: exploded view animation (also as hero background); Santos-inspired line illustration revealed through the empty sidebar "window" cell with a fixed-background effect (must work on iOS, so not plain `background-attachment: fixed`).
@@ -72,10 +74,17 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 3. ✅ Design system, header, hero
 4. Content sections (how it works, specs, FAQ, shipping)
 5. ✅ 3D viewer with the real model
-6. ✅ Configurator (click a part → filament swatches; site colors follow the clock). To do: real filament list, final default colors.
+6. ✅ Configurator (click a part → filament swatches; site colors follow the clock). Real Bambu filament list and presets done; owner to finalize the default and preset colors.
 7. Deploy to Vercel (in progress) — phone touch handling done
 8. Stripe Checkout + serverless function + success page
 9. Polish and launch (exploded view, Santos window illustration, performance on phones)
+
+Owner's current to-do list (2026-11-18):
+- [x] Real colors: Bambu Lab PLA Basic swatches
+- [x] Color presets: Maryland, Pink, Orioles, Ravens (owner to perfect)
+- [ ] Photos of the clock in a room
+- [ ] Ordering: hand off to a third-party 3D print service, or a semi-automated flow where the owner approves each order
+- [ ] Better mobile experience
 
 ## Routine tasks
 - Run locally: `npm run dev` → http://localhost:3000

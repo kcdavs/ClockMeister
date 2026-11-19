@@ -1,4 +1,5 @@
 import ClockViewer from "./ClockViewer";
+import Presets from "./Presets";
 import styles from "./Hero.module.css";
 
 const SPECS = [
@@ -32,6 +33,10 @@ export default function Hero() {
           <li key={spec}>{spec}</li>
         ))}
       </ul>
+
+      <div className={styles.presets}>
+        <Presets />
+      </div>
 
       {/* Reserved for the "window" background illustration */}
       <div className={styles.window} aria-hidden="true" />

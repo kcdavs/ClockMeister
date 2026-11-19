@@ -1,0 +1,41 @@
+.presets {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Buttons wrap onto a second line when the column is narrow */
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.preset {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--paper);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  padding: 0.35rem 0.6rem 0.35rem 0.35rem;
+  cursor: pointer;
+}
+
+.preset:hover,
+.preset[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Four small squares previewing the scheme */
+.strip {
+  display: flex;
+  border: 1px solid currentColor; /* ink normally, paper when the button turns black */
+}
+
+.strip span {
+  width: 0.7rem;
+  height: 0.7rem;
+}
