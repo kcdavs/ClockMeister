@@ -7,7 +7,7 @@ export const INSTALL_VIDEO_URL = "";
 
 // Business contact email for the footer's Contact link (e.g. "orders@clockmeisterclocks.com").
 // While it's empty, Contact shows as "soon". Never a personal address.
-export const CONTACT_EMAIL = "";
+export const CONTACT_EMAIL = "support@clockmeisterclocks.com"; // ImprovMX alias → owner's inbox
 
 // Footer links, in order. href null = not set up yet: shown grayed out with "soon".
 export const FOOTER_LINKS: { label: string; href: string | null }[] = [
