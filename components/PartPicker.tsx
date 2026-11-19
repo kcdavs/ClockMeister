@@ -3,7 +3,7 @@
 // The small popup that appears where you click a part of the clock.
 // Shows the part's color group, its current filament, and swatches to change it.
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ZONES, ZoneId } from "@/data/zones";
 import { DESIGN_MODE, contrast, filaments, nameFor } from "@/lib/colors";
 import { useClockColors } from "./ClockColors";
@@ -11,13 +11,20 @@ import styles from "./PartPicker.module.css";
 
 export const PICKER_WIDTH = 236; // px; the viewer uses this to keep the popup on screen
 
-// sheet = phone layout: a full-width panel along the bottom of the viewer
+// sheet = phone layout: a full-width panel pinned to the bottom of the screen
 type Props = { zone: ZoneId; x: number; y: number; sheet: boolean; onClose: () => void };
 
 export default function PartPicker({ zone, x, y, sheet, onClose }: Props) {
   const { colors, setColors } = useClockColors();
   const label = ZONES.find((z) => z.id === zone)?.label;
   const current = colors[zone];
+  const box = useRef<HTMLDivElement>(null);
+
+  // Make sure it's seen: if the popup opened partly off-screen, scroll just enough to show it.
+  // (The phone panel is pinned to the screen, so it's always visible.)
+  useEffect(() => {
+    if (!sheet) box.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [sheet, x, y]);
 
   // Close on Escape
   useEffect(() => {
@@ -31,6 +38,9 @@ export default function PartPicker({ zone, x, y, sheet, onClose }: Props) {
 
   return (
     <div
+      ref={box}
+      role="dialog"
+      aria-label={`Color for ${label}`}
       className={`${styles.picker} ${sheet ? styles.sheet : ""}`}
       style={sheet ? undefined : { left: x, top: y, width: PICKER_WIDTH }}
     >

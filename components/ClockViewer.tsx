@@ -23,7 +23,9 @@ const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
 const EDGE_ANGLE = 30; // degrees; lower = more outlines, higher = only the sharpest edges
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: "#111111" });
 const HOVER_GLOW = 0.15; // how much a hovered color group lights up
-const FIT_MARGIN = 1.04; // 1 = clock exactly fills the viewer; bigger = more space around it
+const FIT_MARGIN = 1.12; // 1 = clock exactly fills the viewer; bigger = more space around it
+const MIN_DISTANCE = 0.05; // closest and farthest the camera can zoom, in meters
+const MAX_DISTANCE = 2.5;
 
 type ModelProps = {
   colors: Colors;
@@ -111,9 +113,10 @@ export default function ClockViewer() {
   const clockRef = useRef<THREE.Group>(null);
   const [resetCount, setResetCount] = useState(0);
 
-  // "Click / tap to explore": until you click or tap the clock, scrolling (wheel or finger)
-  // moves the page. After that, scrolling zooms and one finger rotates. With a mouse it ends
-  // when the mouse leaves the viewer; on a phone, when you tap anywhere outside the clock.
+  // Mouse: "click to explore". Until you click the clock, the scroll wheel moves the page;
+  // after that it zooms, until the mouse leaves the viewer.
+  // Touch: there's no mode to get stuck in. One finger up/down always scrolls the page,
+  // sideways turns the clock; two fingers zoom and move it (see TwoFingerGestures).
   const [active, setActive] = useState(false);
   const touch = useIsTouchDevice();
 
@@ -136,7 +139,7 @@ export default function ClockViewer() {
   const closePicker = useCallback(() => setPicked(null), []);
 
   // Open the popup just below-right of the click, flipped left if it would run off the edge.
-  // On narrow screens (phones) it becomes a full-width panel along the bottom instead.
+  // On narrow screens (phones) it becomes a full-width panel pinned to the bottom of the screen.
   function openPicker(zone: ZoneId, x: number, y: number) {
     const width = wrapper.current?.clientWidth ?? 0;
     const height = wrapper.current?.clientHeight ?? 0;
@@ -162,7 +165,7 @@ export default function ClockViewer() {
   return (
     <div
       ref={wrapper}
-      className={active ? undefined : styles.idle}
+      className={touch ? styles.touch : undefined}
       style={{
         position: "absolute", // fill the cell without affecting its size (see Hero.module.css)
         inset: 0,
@@ -198,6 +201,7 @@ export default function ClockViewer() {
             </group>
           </Center>
           <FitCamera target={clockRef} signal={resetCount} />
+          {touch && <TwoFingerGestures />}
         </Suspense>
 
         {/* Onshape-style controls: scroll zooms toward the cursor, left/right-drag rotates,
@@ -206,11 +210,11 @@ export default function ClockViewer() {
           makeDefault
           zoomToCursor
           enableZoom={active}
-          enableRotate={
-            active || !touch
-          } /* phones: one finger scrolls the page until tapped */
-          minDistance={0.05}
-          maxDistance={2.5}
+          minDistance={MIN_DISTANCE}
+          maxDistance={MAX_DISTANCE}
+          /* Fingers: one turns the clock; two are handled by TwoFingerGestures instead
+             (an unknown value here switches off the built-in two-finger handling) */
+          touches={{ ONE: THREE.TOUCH.ROTATE, TWO: -1 as unknown as THREE.TOUCH }}
           mouseButtons={{
             LEFT: THREE.MOUSE.ROTATE,
             MIDDLE: THREE.MOUSE.PAN,
@@ -236,9 +240,7 @@ export default function ClockViewer() {
       </div>
       <p className={`${styles.hint} label`}>
         {touch
-          ? active
-            ? "Tap a part to recolor · Drag to rotate · Pinch to zoom"
-            : "Tap the clock to explore"
+          ? "Tap a part to recolor · Pinch to zoom"
           : active
             ? "Click a part to recolor · Scroll to zoom · Drag to rotate"
             : "Click any part to change its color"}
@@ -307,6 +309,85 @@ function FitCamera({
     orbit?.target.copy(center);
     orbit?.update();
   }, [get, width, height, controls, target, signal]);
+
+  return null;
+}
+
+// Phones: two-finger gestures on the clock.
+//   pinch            → zoom in/out, toward the point between your fingers
+//   slide sideways   → move the clock left/right
+//   slide up/down    → scroll the page (so you can never get stuck on the clock)
+// One finger is left to the browser (scroll) and OrbitControls (sideways = turn the clock).
+function TwoFingerGestures() {
+  const gl = useThree((s) => s.gl);
+  const get = useThree((s) => s.get);
+
+  useEffect(() => {
+    const el = gl.domElement;
+    type Fingers = { x: number; y: number; spread: number };
+    let last: Fingers | null = null;
+    const read = (t: TouchList): Fingers | null =>
+      t.length === 2
+        ? {
+            x: (t[0].clientX + t[1].clientX) / 2,
+            y: (t[0].clientY + t[1].clientY) / 2,
+            spread: Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY),
+          }
+        : null;
+
+    const onStartOrEnd = (e: TouchEvent) => (last = read(e.touches));
+    const onMove = (e: TouchEvent) => {
+      const now = read(e.touches);
+      if (!now || !last) return;
+      if (e.cancelable) e.preventDefault(); // we handle it, not the browser's own pinch-zoom
+
+      const camera = get().camera;
+      const orbit = get().controls as unknown as Controls;
+      if (orbit && camera instanceof THREE.PerspectiveCamera) {
+        const rect = el.getBoundingClientRect();
+        const offset = camera.position.clone().sub(orbit.target); // target → camera
+        const distance = offset.length();
+        // Size of one screen pixel, in meters, at the clock's depth
+        const perPixel = (2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / rect.height;
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+
+        // The point on the clock between the fingers, so zooming heads toward it
+        const pinch = orbit.target
+          .clone()
+          .addScaledVector(right, (now.x - rect.left - rect.width / 2) * perPixel)
+          .addScaledVector(up, (rect.top + rect.height / 2 - now.y) * perPixel);
+
+        // Zoom: fingers apart = closer. Scale everything around the pinch point.
+        const newDistance = THREE.MathUtils.clamp(
+          (distance * last.spread) / now.spread,
+          MIN_DISTANCE,
+          MAX_DISTANCE,
+        );
+        const scale = newDistance / distance;
+        orbit.target.sub(pinch).multiplyScalar(scale).add(pinch);
+
+        // Slide sideways: move the clock with the fingers
+        orbit.target.addScaledVector(right, -(now.x - last.x) * perPixel * scale);
+        camera.position.copy(orbit.target).addScaledVector(offset, scale);
+        orbit.update();
+      }
+
+      window.scrollBy(0, last.y - now.y); // up/down scrolls the page, following the fingers
+      last = now;
+    };
+
+    el.addEventListener("touchstart", onStartOrEnd, { passive: true });
+    el.addEventListener("touchend", onStartOrEnd, { passive: true });
+    el.addEventListener("touchcancel", onStartOrEnd, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false }); // passive: false lets us preventDefault
+    return () => {
+      el.removeEventListener("touchstart", onStartOrEnd);
+      el.removeEventListener("touchend", onStartOrEnd);
+      el.removeEventListener("touchcancel", onStartOrEnd);
+      el.removeEventListener("touchmove", onMove);
+    };
+  }, [gl, get]);
 
   return null;
 }

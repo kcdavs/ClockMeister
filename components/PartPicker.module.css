@@ -7,12 +7,22 @@
   box-shadow: 6px 6px 0 var(--ink); /* flat offset shadow, Bauhaus-poster style */
 }
 
-/* Phone layout: full width along the bottom of the viewer, bigger tap targets */
+/* Phone layout: pinned to the bottom of the SCREEN (not of the tall clock viewer, which can
+   end far below what you're looking at), sliding up so it's obvious something opened. */
 .sheet {
+  position: fixed;
+  z-index: 50;
   left: var(--space-1);
   right: var(--space-1);
-  bottom: var(--space-1);
-  box-shadow: none;
+  bottom: calc(var(--space-1) + env(safe-area-inset-bottom)); /* clear the iPhone home bar */
+  box-shadow: 0 -6px 0 var(--ink);
+  animation: slide-up 0.25s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(120%);
+  }
 }
 
 .sheet .swatches {

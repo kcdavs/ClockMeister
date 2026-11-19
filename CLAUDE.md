@@ -52,8 +52,10 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - `components/ClockViewer.tsx` (client component): loads the GLB with drei `useGLTF`, tags each mesh with its zone, repaints from the shared color store, outlines edges with `EdgesGeometry` (EDGE_ANGLE = 30°, ~151k segments, ~0.3 s; outlines have raycast disabled so clicks hit parts).
 - Orientation: Onshape exports Z-up; the model is rotated -90° about X, then 180° about Y so the face points at the camera.
 - Controls mirror Onshape: scroll zooms toward the cursor; left/right-drag rotate; middle-drag or Shift+drag pan; "Reset view" re-fits. Framing is custom (`FitCamera` in ClockViewer, FIT_MARGIN): drei `Bounds` was dropped because it fits the largest dimension as if the clock were square, which wasted space in a tall cell. Zoom limits 0.05–2.5 m.
-- "Click / tap to explore": zoom (and on touch devices, rotation) is off until the visitor clicks/taps the clock, so the page scrolls over it. Mouse: ends on pointer leave. Touch: ends on a tap outside. `.idle canvas { touch-action: pan-y }` lets fingers scroll the page.
-- Configurator = click a part: hover glows the whole zone, click (not drag; `e.delta > 4` = drag) opens `components/PartPicker.tsx` with filament swatches. On narrow screens (<560px) the picker is a full-width bottom sheet.
+- Mouse: "click to explore": wheel zoom is off until the visitor clicks the clock (so the wheel scrolls the page); ends on pointer leave.
+- Touch (no modes, so nobody gets stuck): one finger up/down always scrolls the page, sideways turns the clock (OrbitControls ONE: ROTATE), tap picks a part. Two fingers are custom (`TwoFingerGestures` in ClockViewer; OrbitControls TWO set to an invalid value to disable its own): pinch zooms toward the fingers, sideways moves the clock, up/down scrolls the page. `.touch * { touch-action: pan-y !important }`: r3f's wrapper div also sets `touch-action: none`, and the browser obeys the strictest ancestor, so styling only the canvas isn't enough.
+- Test touch with Playwright + CDP `Input.dispatchTouchEvent` (real multi-touch; Playwright's own API only taps).
+- Configurator = click a part: hover glows the whole zone, click (not drag; `e.delta > 4` = drag) opens `components/PartPicker.tsx` with filament swatches. On narrow screens (<560px) the picker is a full-width sheet `position: fixed` to the bottom of the screen (the viewer is taller than the screen, so its own bottom may be off-screen), with a slide-up animation. On desktop it scrolls itself into view if it opens partly off-screen.
 - Shared color store: `components/ClockColors.tsx` (React context). Updating colors also rewrites the site accent CSS variables (`--red/--blue/--yellow` and `--red-text` for readable button text) and the browser theme-color meta tag.
 - Filaments: `data/filaments.json` (id, name, hex) — the 30 solid Bambu Lab PLA Basic colors, hex codes from Bambu Studio's `resources/profiles/BBL/filament/filaments_color_codes.json` (gradients left out). Zone defaults in `data/zones.ts` (= the "ClockMeister" preset) are the owner's Onshape colors snapped to the nearest filament in CIELAB: white→Jade White, red→Red, yellow→Sunflower Yellow, sky blue→Cyan, black and dark gray→Black (owner wants one black), light gray→Light Gray. Accents moved off the (now white) face: `--yellow` follows the escape wheel, `--blue` the motion works wheel.
 - Presets: `data/presets.ts` (ClockMeister default, Maryland, Pink, Orioles, Ravens) name a filament per zone by its exact name; a misspelling fails the build. Buttons in `components/Presets.tsx`, in a hero sidebar cell under the specs (above the clock on phones). Owner will fine-tune the schemes.
@@ -65,7 +67,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 ## Design
 - Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, red/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
 - Grid rules: containers are ink-colored with a 3px gap; cells are paper-colored, so gaps read as black lines.
-- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, red/blue blocks at the bottom) and ~62% clock cell with `aspect-ratio: 0.45` (the clock's shape) so the clock spans the full cell width; the cell is ~2 screens tall on laptops and the pendulum is revealed by scrolling. FIT_MARGIN 1.04 so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
+- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, red/blue blocks at the bottom) and ~62% clock cell with `aspect-ratio: 0.45` (the clock's shape) so the clock spans the full cell width; the cell is ~2 screens tall on laptops and the pendulum is revealed by scrolling. FIT_MARGIN 1.12 (owner found 1.04 slightly too large on desktop). Columns `2fr 1fr 3fr 10fr`.
 - Owner preferences: color should be dwarfed by paper/ink; amount of color red > blue > yellow; avoid busy UI.
 
 ## Roadmap
@@ -84,7 +86,7 @@ Owner's current to-do list (2026-11-18):
 - [x] Color presets: Maryland, Pink, Orioles, Ravens (owner to perfect)
 - [ ] Photos of the clock in a room
 - [ ] Ordering: hand off to a third-party 3D print service, or a semi-automated flow where the owner approves each order
-- [ ] Better mobile experience
+- [ ] Better mobile experience (touch gestures + visible color popup done 2026-11-18; more to come?)
 
 ## Routine tasks
 - Run locally: `npm run dev` → http://localhost:3000

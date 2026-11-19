@@ -21,9 +21,11 @@
   color: var(--paper);
 }
 
-/* Before the visitor taps the clock, a finger swipe over it scrolls the page.
-   (The 3D controls normally claim all touches; !important overrides that.) */
-.idle canvas {
+/* Phones: one finger up/down always scrolls the page; everything else (sideways turns,
+   two-finger zoom) goes to the clock. The 3D library claims all touches on the canvas AND on
+   its wrapper div (the browser obeys the strictest one), so this covers every layer inside.
+   !important beats the library's inline styles. */
+.touch * {
   touch-action: pan-y !important;
 }
 
