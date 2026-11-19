@@ -1,5 +1,5 @@
 /* Paper cells on an ink ground, so the gaps read as the site's black grid rules:
-   the order card on the left, an empty paper cell filling the rest (desktop only). */
+   the order card on the left, their clock filling the rest (below the card on phones). */
 .page {
   background: var(--ink);
   display: grid;
@@ -13,12 +13,22 @@
   background: var(--paper);
 }
 
+/* The 3D picture fills this cell without sizing it (see ClockStill: position absolute),
+   the same rule the home page's viewer follows to keep Safari from growing it forever. */
+.clock {
+  background: var(--paper);
+  position: relative;
+}
+
 @media (max-width: 720px) {
   .page {
     grid-template-columns: 1fr;
   }
   .filler {
     display: none;
+  }
+  .clock {
+    aspect-ratio: 0.55; /* tall enough for the whole clock, pendulum included */
   }
 }
 
@@ -34,6 +44,11 @@
   font-size: clamp(2.25rem, 6vw, 3.5rem);
   font-weight: 500;
   line-height: 1.05;
+}
+
+/* Headings default to bold, but the mono font only has 400/500 (Safari fakes bold badly) */
+.card h2 {
+  font-weight: 500;
 }
 
 .lede {

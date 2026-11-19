@@ -6,7 +6,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import Stripe from "stripe";
+import ClockStill from "@/components/ClockStill";
 import SiteHeader from "@/components/SiteHeader";
+import type { Colors } from "@/components/ClockColors";
 import { ZONES } from "@/data/zones";
 import filaments from "@/data/filaments.json";
 import styles from "./success.module.css";
@@ -25,7 +27,6 @@ export default function SuccessPage({ searchParams }: PageProps<"/success">) {
         <Suspense fallback={<p className={`${styles.card} label`}>Loading your order…</p>}>
           <Order searchParams={searchParams} />
         </Suspense>
-        <div className={styles.filler} aria-hidden="true" />
       </main>
     </>
   );
@@ -38,14 +39,17 @@ async function Order({ searchParams }: Pick<PageProps<"/success">, "searchParams
 
   if (!session) {
     return (
-      <section className={styles.card}>
-        <h1 className={styles.title}>Order not found.</h1>
-        <p>
-          We couldn&apos;t look up this order. If you paid, it went through: check your
-          email for the receipt.
-        </p>
-        <Link href="/" className={`${styles.button} label`}>Back to ClockMeister →</Link>
-      </section>
+      <>
+        <section className={styles.card}>
+          <h1 className={styles.title}>Order not found.</h1>
+          <p>
+            We couldn&apos;t look up this order. If you paid, it went through: check your
+            email for the receipt.
+          </p>
+          <Link href="/" className={`${styles.button} label`}>Back to ClockMeister →</Link>
+        </section>
+        <div className={styles.filler} aria-hidden="true" />
+      </>
     );
   }
 
@@ -53,34 +57,49 @@ async function Order({ searchParams }: Pick<PageProps<"/success">, "searchParams
   const name = session.collected_information?.shipping_details?.name;
   const paid = session.payment_status !== "unpaid"; // "paid" or "no_payment_required"
 
+  // Their clock's colors for the picture: each zone's filament from the order, by name
+  const colors = Object.fromEntries(
+    ZONES.map((z) => [
+      z.id,
+      filaments.find((f) => f.name === session.metadata?.[z.id])?.hex ?? z.color,
+    ]),
+  ) as Colors;
+
   return (
-    <section className={styles.card}>
-      <p className="label">Order confirmed</p>
-      <h1 className={styles.title}>Thank you{name ? `, ${name.split(" ")[0]}` : ""}.</h1>
-      <p className={styles.lede}>
-        {paid
-          ? "Your clock is in the queue. Each one is printed and assembled by hand."
-          : "Your payment is still processing. Your clock joins the queue once it clears."}
-        {email && <> We&apos;ll be in touch at <strong>{email}</strong>.</>}
-      </p>
+    <>
+      <section className={styles.card}>
+        <p className="label">Order confirmed</p>
+        <h1 className={styles.title}>Thank you{name ? `, ${name.split(" ")[0]}` : ""}.</h1>
+        <p className={styles.lede}>
+          {paid
+            ? "Your clock is in the queue. Each one is printed and assembled by hand."
+            : "Your payment is still processing. Your clock joins the queue once it clears."}
+          {email && <> We&apos;ll be in touch at <strong>{email}</strong>.</>}
+        </p>
 
-      <h2 className="label">Your colors</h2>
-      <ul className={styles.colors}>
-        {ZONES.filter((z) => session.metadata?.[z.id]).map((zone) => {
-          const filamentName = session.metadata![zone.id];
-          const hex = filaments.find((f) => f.name === filamentName)?.hex;
-          return (
-            <li key={zone.id}>
-              <span className={styles.swatch} style={{ background: hex }} aria-hidden="true" />
-              <span>{zone.label}</span>
-              <span className={styles.filament}>{filamentName}</span>
-            </li>
-          );
-        })}
-      </ul>
+        <h2 className="label">Your colors</h2>
+        <ul className={styles.colors}>
+          {ZONES.filter((z) => session.metadata?.[z.id]).map((zone) => {
+            const filamentName = session.metadata![zone.id];
+            const hex = filaments.find((f) => f.name === filamentName)?.hex;
+            return (
+              <li key={zone.id}>
+                <span className={styles.swatch} style={{ background: hex }} aria-hidden="true" />
+                <span>{zone.label}</span>
+                <span className={styles.filament}>{filamentName}</span>
+              </li>
+            );
+          })}
+        </ul>
 
-      <Link href="/" className={`${styles.button} label`}>Back to ClockMeister →</Link>
-    </section>
+        <Link href="/" className={`${styles.button} label`}>Back to ClockMeister →</Link>
+      </section>
+
+      {/* Their clock, straight on: beside the card on desktop, below it on phones */}
+      <div className={styles.clock}>
+        <ClockStill colors={colors} />
+      </div>
+    </>
   );
 }
 

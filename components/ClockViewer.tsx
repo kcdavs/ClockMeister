@@ -221,7 +221,7 @@ function planExplode(root: THREE.Object3D) {
 }
 
 // Loads the model once, gives every part its own material, and tags it with its zone.
-function ClockModel({ explodeAmount, colors, hovered, onHover, onPick }: ModelProps) {
+export function ClockModel({ explodeAmount, colors, hovered, onHover, onPick }: ModelProps) {
   const { scene } = useGLTF(MODEL_URL);
 
   // Metal only looks like metal if it has something to reflect. This builds a soft, blurred
@@ -502,7 +502,7 @@ function useIsTouchDevice() {
 // real height AND width both fit (whichever is the tighter limit), plus FIT_MARGIN.
 // Runs when the model appears, when the viewer is resized, and on "Reset view".
 type Controls = { target: THREE.Vector3; update: () => void } | null;
-function FitCamera({
+export function FitCamera({
   target,
   signal,
 }: {
