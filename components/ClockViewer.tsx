@@ -24,7 +24,7 @@ const UNMAPPED = "#ff00ff"; // magenta = a part we forgot to put in a zone
 const EDGE_ANGLE = 30; // degrees; lower = more outlines, higher = only the sharpest edges
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: "#111111" });
 const HOVER_GLOW = 0.15; // how much a hovered color group lights up
-const STEEL = "#d4d8dc"; // bought hardware (screws, bolts, pins, rod): brushed stainless steel
+const STEEL = "#b1b6bb"; // bought hardware (screws, bolts, pins, rod): stainless steel
 const FIT_MARGIN = 1.12; // 1 = clock exactly fills the viewer; bigger = more space around it
 const MIN_DISTANCE = 0.05; // closest and farthest the camera can zoom, in meters
 const MAX_DISTANCE = 2.5;
@@ -51,7 +51,7 @@ function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
   const gl = useThree((s) => s.gl);
   const steelReflections = useMemo(() => {
     const generator = new THREE.PMREMGenerator(gl);
-    const texture = generator.fromScene(new RoomEnvironment(), 0.04).texture;
+    const texture = generator.fromScene(new RoomEnvironment(), 0.01).texture;
     generator.dispose();
     return texture;
   }, [gl]);
@@ -68,7 +68,7 @@ function ClockModel({ colors, hovered, onHover, onPick }: ModelProps) {
       const steel = zone === "fixed";
       obj.material = new THREE.MeshStandardMaterial({
         ...(steel
-          ? { color: STEEL, metalness: 1, roughness: 0.3, envMap: steelReflections }
+          ? { color: STEEL, metalness: 1, roughness: 0.18, envMap: steelReflections, envMapIntensity: 0.9 }
           : { roughness: 0.55, metalness: 0 }),
         // nudge the surfaces back a hair so the outlines draw cleanly on top
         polygonOffset: true,
