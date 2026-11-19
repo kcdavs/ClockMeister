@@ -9,10 +9,13 @@ import type { ZoneId } from "./zones";
 type Zone = Exclude<ZoneId, "fixed">; // hardware isn't colorable
 type Scheme = Record<Zone, string>; // zone → filament name
 
-const SCHEMES: { id: string; name: string; scheme: Scheme }[] = [
+// Listed in the order the buttons appear: most colors first.
+// strip = the little color squares on the button (filament names, left to right).
+const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] = [
   {
-    id: "classic",
-    name: "ClockMeister",
+    id: "mondrian",
+    name: "Mondrian",
+    strip: ["Red", "Sunflower Yellow", "Cyan", "Black", "Jade White"],
     // The default clock: the Onshape colors, matched to the nearest Bambu filaments
     scheme: {
       face: "Jade White",
@@ -33,9 +36,33 @@ const SCHEMES: { id: string; name: string; scheme: Scheme }[] = [
     },
   },
   {
+    // Purple, black and metallic gold
+    id: "ravens",
+    name: "Ravens",
+    strip: ["Purple", "Indigo Purple", "Gold", "Black", "Jade White"],
+    scheme: {
+      face: "Purple",
+      numerals: "Gold",
+      hands: "Gold",
+      mainWheel: "Black",
+      wheels: "Indigo Purple",
+      escWheel: "Gold",
+      escPallet: "Black",
+      frontFrame: "Black",
+      rearFrame: "Indigo Purple",
+      motionWheel: "Gold",
+      hourWheel: "Black",
+      minuteArbor: "Gold",
+      pendulum: "Gold",
+      ratchet: "Purple",
+      accents: "Black",
+    },
+  },
+  {
     // The state flag: black and gold (Calvert) with red and white (Crossland)
     id: "maryland",
     name: "Maryland",
+    strip: ["Sunflower Yellow", "Red", "Black", "Jade White"],
     scheme: {
       face: "Sunflower Yellow",
       numerals: "Black",
@@ -57,6 +84,7 @@ const SCHEMES: { id: string; name: string; scheme: Scheme }[] = [
   {
     id: "pink",
     name: "Pink",
+    strip: ["Black", "Jade White", "Pink"],
     // Picked by the owner on localhost (2026-11-18)
     scheme: {
       face: "Black",
@@ -80,6 +108,7 @@ const SCHEMES: { id: string; name: string; scheme: Scheme }[] = [
     // Orange, black and white
     id: "orioles",
     name: "Orioles",
+    strip: ["Orange", "Black", "Jade White"],
     scheme: {
       face: "Orange",
       numerals: "Black",
@@ -98,39 +127,19 @@ const SCHEMES: { id: string; name: string; scheme: Scheme }[] = [
       accents: "Black",
     },
   },
-  {
-    // Purple, black and metallic gold
-    id: "ravens",
-    name: "Ravens",
-    scheme: {
-      face: "Purple",
-      numerals: "Gold",
-      hands: "Gold",
-      mainWheel: "Black",
-      wheels: "Indigo Purple",
-      escWheel: "Gold",
-      escPallet: "Black",
-      frontFrame: "Black",
-      rearFrame: "Indigo Purple",
-      motionWheel: "Gold",
-      hourWheel: "Black",
-      minuteArbor: "Gold",
-      pendulum: "Gold",
-      ratchet: "Purple",
-      accents: "Black",
-    },
-  },
 ];
 
-// Turn filament names into hex colors (what the 3D viewer uses)
-function toHex(presetName: string, scheme: Scheme) {
-  return Object.fromEntries(
-    Object.entries(scheme).map(([zone, filament]) => {
-      const match = filaments.find((f) => f.name === filament);
-      if (!match) throw new Error(`Preset "${presetName}": no filament named "${filament}"`);
-      return [zone, match.hex];
-    }),
-  ) as Record<Zone, string>;
+// Turn a filament name into its hex color (what the 3D viewer uses)
+function hexOf(presetName: string, filament: string) {
+  const match = filaments.find((f) => f.name === filament);
+  if (!match) throw new Error(`Preset "${presetName}": no filament named "${filament}"`);
+  return match.hex;
 }
 
-export const PRESETS = SCHEMES.map((p) => ({ ...p, colors: toHex(p.name, p.scheme) }));
+export const PRESETS = SCHEMES.map((p) => ({
+  ...p,
+  colors: Object.fromEntries(
+    Object.entries(p.scheme).map(([zone, filament]) => [zone, hexOf(p.name, filament)]),
+  ) as Record<Zone, string>,
+  stripColors: p.strip.map((filament) => hexOf(p.name, filament)),
+}));
