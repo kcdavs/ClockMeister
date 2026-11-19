@@ -51,7 +51,7 @@ const SCHEMES: { id: string; name: string; strip: string[]; scheme: Scheme }[] =
       frontFrame: "Black",
       rearFrame: "Indigo Purple",
       motionWheel: "Gold",
-      hourWheel: "Black",
+      hourWheel: "Jade White",
       minuteArbor: "Gold",
       pendulum: "Gold",
       ratchet: "Purple",
