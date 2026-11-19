@@ -13,6 +13,7 @@
      └──────┴────┴──────────┴──────────────────────────┘
    Same rule trick as the header: ink background + gaps = black lines. */
 .hero {
+  container-type: inline-size; /* lets the viewer size itself from the hero's width (cqw) */
   display: grid;
   grid-template-columns: 2fr 1fr 3fr 10fr; /* red, blue, empty = 6/16 ≈ 38% sidebar; clock = 10/16 ≈ 62% */
   grid-template-rows: auto auto auto 1fr 3rem; /* 3rem = height of the color-block row, at the bottom */
@@ -82,13 +83,21 @@
   grid-column: 1 / 4;
 }
 
-/* Same shape as the clock (about 0.44 wide per 1 tall, plus a little margin), so the clock
-   fills the cell's full width. The height follows from the width: on a laptop that's about
-   two screens tall, and scrolling down reveals the pendulum. */
+/* Sized so the clock's head (gears, frame, dial — everything but the pendulum) fits on one
+   screen, below the ~4rem header; scrolling down reveals the pendulum.
+   The height is the smaller of two limits:
+   - --fit-width: the clock's own shape (0.46 wide per 1 tall), so it spans the cell's width.
+     (cqw = 1% of the hero's width; the clock column is 10/16 of it, minus the grid lines.)
+   - --fit-screen: once the head would no longer fit on screen, stop growing.
+     1.72 = cell height per screen of head room: the head is 56% of the clock's height,
+     plus FIT_MARGIN (1.12, in ClockViewer) and a little room below the head.
+   If FIT_MARGIN or the model's proportions change, update these numbers too. */
 .viewer {
   grid-column: 4;
   grid-row: 1 / -1;
-  aspect-ratio: 0.45;
+  --fit-width: calc((100cqw - 3 * var(--rule)) * 10 / 16 / 0.46);
+  --fit-screen: calc((100svh - 4rem) * 1.72);
+  height: min(var(--fit-width), var(--fit-screen));
   /* The 3D viewer is pinned inside (position: absolute), so it can't push this cell bigger.
      Without this, Safari let the canvas grow the cell, which grew the canvas, forever. */
   position: relative;
@@ -110,6 +119,7 @@
     grid-row: auto;
   }
   .viewer {
+    --fit-width: calc(100cqw / 0.46); /* full width on phones */
     order: -1; /* show the clock right after the headline... */
   }
   .presets {

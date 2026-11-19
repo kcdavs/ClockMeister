@@ -67,7 +67,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 ## Design
 - Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, red/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
 - Grid rules: containers are ink-colored with a 3px gap; cells are paper-colored, so gaps read as black lines.
-- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, red/blue blocks at the bottom) and ~62% clock cell with `aspect-ratio: 0.45` (the clock's shape) so the clock spans the full cell width; the cell is ~2 screens tall on laptops and the pendulum is revealed by scrolling. FIT_MARGIN 1.12 (owner found 1.04 slightly too large on desktop). Columns `2fr 1fr 3fr 10fr`.
+- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, red/blue blocks at the bottom) and ~62% clock cell. Goal (owner): the clock's head (everything but the pendulum) fits on one screen; scrolling reveals the pendulum. Cell `height: min(--fit-width, --fit-screen)`: width-based uses the clock's shape 0.46 via `cqw` (hero is a size container); screen-based is `(100svh - 4rem) * 1.72` (head = 56% of clock height, with FIT_MARGIN). Don't use aspect-ratio + max-height: that shrinks the cell's width too. Retune 1.72 if FIT_MARGIN or the model's proportions change. FIT_MARGIN 1.12 (owner found 1.04 slightly too large on desktop). Columns `2fr 1fr 3fr 10fr`.
 - Owner preferences: color should be dwarfed by paper/ink; amount of color red > blue > yellow; avoid busy UI.
 
 ## Roadmap
