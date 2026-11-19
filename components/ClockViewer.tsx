@@ -39,6 +39,10 @@ const MAX_DISTANCE = 2.5;
 const EXPLODE_GAP = 0.015; // meters between layers (back face to front face)
 const GEAR_SPACING = 0.055; // meters between the going train's gear planes (see planeOf)
 const BOLTS_BACK = 0.07; // meters the frame bolts slide out the back
+// The only parts that also move another way: the pendulum rod slides down ROD_DROP from the
+// pallet, and the pendulum slides down a further PENDULUM_DROP from the rod
+const ROD_DROP = 0.06;
+const PENDULUM_DROP = 0.06;
 const EXPLODE_TURN = THREE.MathUtils.degToRad(40);
 // Extra room when shrinking the exploded clock to fit: parts nearer the camera look bigger
 // than they measure (perspective), so aim for a bit less than the assembled width
@@ -65,12 +69,22 @@ const pickableZone = (obj: THREE.Object3D) => {
 // position (userData.home) and its full exploded movement (userData.explode, in the part's
 // parent's coordinates); ClockModel blends between them.
 function planExplode(root: THREE.Object3D) {
-  // The clock's front-to-back axis is its thinnest dimension; the other two are "across"
-  const whole = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
+  // The clock's front-to-back axis is its thinnest dimension; the other two are "across".
+  // Up-and-down is the tallest one.
+  const wholeBox = new THREE.Box3().setFromObject(root);
+  const whole = wholeBox.getSize(new THREE.Vector3());
   const axis = whole.x < whole.y && whole.x < whole.z ? "x" : whole.y < whole.z ? "y" : "z";
   const [acrossA, acrossB] = (["x", "y", "z"] as const).filter((a) => a !== axis);
+  const vertical = whole.x > whole.y && whole.x > whole.z ? "x" : whole.y > whole.z ? "y" : "z";
 
-  type Part = { mesh: THREE.Mesh; zone: ZoneId | null; box: THREE.Box3; travel?: number; plane?: number };
+  type Part = {
+    mesh: THREE.Mesh;
+    zone: ZoneId | null;
+    box: THREE.Box3;
+    travel?: number; // forward, along the front-to-back axis
+    drop?: number; // down (only the pendulum and its rod)
+    plane?: number;
+  };
   const parts: Part[] = [];
   root.traverse((obj) => {
     if (obj instanceof THREE.Mesh && obj.parent)
@@ -185,9 +199,20 @@ function planExplode(root: THREE.Object3D) {
     pin.travel = host?.travel ?? 0;
   }
 
+  // 5. The pendulum and its rod also slide down (the pendulum hangs at the bottom, so "down"
+  //    is from the clock's middle toward it), apart from the pallet and from each other
+  const pendulum = parts.find((p) => p.zone === "pendulum");
+  const rod = parts.find((p) => p.mesh.name.startsWith("Pendulm"));
+  const middleHeight = (wholeBox.min[vertical] + wholeBox.max[vertical]) / 2;
+  const down = pendulum ? Math.sign(pendulum.box.getCenter(new THREE.Vector3())[vertical] - middleHeight) : -1;
+  if (rod) rod.drop = ROD_DROP;
+  if (pendulum) pendulum.drop = ROD_DROP + PENDULUM_DROP;
+
   // Store each part's home and its movement, converted into its parent's coordinates
   for (const p of parts) {
-    const move = new THREE.Vector3().setComponent("xyz".indexOf(axis), sign * (p.travel ?? 0));
+    const move = new THREE.Vector3()
+      .setComponent("xyz".indexOf(axis), sign * (p.travel ?? 0))
+      .setComponent("xyz".indexOf(vertical), down * (p.drop ?? 0));
     p.mesh.userData.home = p.mesh.position.clone();
     p.mesh.userData.explode = p.mesh.parent!
       .worldToLocal(move)
@@ -533,7 +558,7 @@ function ExplodeAnimator({
   amountRef: React.RefObject<number>;
   goal: number; // 0–1, from the slider
 }) {
-  const assembled = useRef<{ width: number; halfHeight: number } | null>(null); // measured once
+  const assembled = useRef<{ width: number; height: number; halfHeight: number } | null>(null); // measured once
 
   useFrame((_, delta) => {
     const clock = targetRef.current;
@@ -542,21 +567,23 @@ function ExplodeAnimator({
     const size = new THREE.Vector3();
     if (!assembled.current) {
       box.setFromObject(clock).getSize(size);
-      assembled.current = { width: size.x, halfHeight: size.y / 2 };
+      assembled.current = { width: size.x, height: size.y, halfHeight: size.y / 2 };
     }
     // damp = smooth approach that slows down near the end; snap when close enough
     let t = THREE.MathUtils.damp(amountRef.current, goal, EXPLODE_SPEED, delta);
     if (Math.abs(t - goal) < 0.001) t = goal;
     amountRef.current = t;
 
-    // Turn, then measure how wide the (partly) exploded clock is at full size, and shrink it
-    // just enough to stay as wide as the assembled clock, so it always fits its box
+    // Turn, then measure how big the (partly) exploded clock is at full size, and shrink it
+    // just enough to stay within the assembled clock's width and height, so it fits its box
     clock.rotation.y = Math.PI + EXPLODE_TURN * t;
     clock.scale.setScalar(1);
     clock.position.set(0, 0, 0);
     clock.updateMatrixWorld(true);
     box.setFromObject(clock);
-    const fit = (assembled.current.width / box.getSize(size).x) * (1 - (1 - EXPLODE_FIT) * t);
+    box.getSize(size);
+    const roomy = Math.min(assembled.current.width / size.x, assembled.current.height / size.y);
+    const fit = roomy * (1 - (1 - EXPLODE_FIT) * t);
     const scale = Math.min(1, fit);
     const centerX = box.getCenter(new THREE.Vector3()).x;
     clock.scale.setScalar(scale);

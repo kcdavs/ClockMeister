@@ -12,8 +12,7 @@ export const STACK_ORDER: (string | string[])[] = [
   "4th Wheel",
   ["Esc Wheel", "Drive Wheel"], // side by side, they don't touch
   "2nd Wheel",
-  "Esc Pallet",
-  "Pendant", // the pendulum
+  ["Esc Pallet", "Pendant"], // the pallet and the pendulum (with its rod), in one plane
 ];
 
 // Which layer of STACK_ORDER a part belongs to (or -1 if it isn't listed)
