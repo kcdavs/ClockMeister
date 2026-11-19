@@ -7,9 +7,9 @@
   --paper: #f2ede3;
   --ink: #141414;
   /* These three follow the clock's colors (see components/ClockColors.tsx) */
-  --red: #9d2235; /* burgundy, follows the wheels */
-  --yellow: #fec600; /* follows the face */
-  --blue: #0056b8; /* follows the escape wheel */
+  --red: #c12e1f; /* follows the wheels */
+  --yellow: #f4ee2a; /* follows the escape wheel */
+  --blue: #00b1b7; /* follows the motion works wheel */
   --red-text: var(--paper); /* text color on top of --red; flips to ink on light colors */
   --muted: #6b665d;
 

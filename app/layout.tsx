@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 // Tints the browser toolbar (Safari, phones) burgundy, matching --red in globals.css.
 export const viewport: Viewport = {
-  themeColor: "#9d2235",
+  themeColor: "#c12e1f",
 };
 
 // The root layout wraps every page on the site. {children} is the page itself.

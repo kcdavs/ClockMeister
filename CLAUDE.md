@@ -34,14 +34,14 @@ Source: Onshape "Right Assembly" (the whole clock; a mirrored left version exist
 Optimization took it from 27.7 MB / 11,261 draw pieces to 2.0 MB / 93 pieces, no detail lost.
 
 Color zones live in `data/zones.ts` (`ZONES` list + `zoneForPart()` name rules). 15 selectable zones + fixed:
-- Face: Part 3 (multi-color print with the numerals) — drives site accent `--yellow`
+- Face: Part 3 (multi-color print with the numerals)
 - Numerals: the 72 small "Part N" segments — must contrast with the face (warning shown)
 - Hands: Hour Hand, Minute Hand
 - Main wheel: Part 4 (the large first wheel of the train)
-- Wheels: 2nd/3rd/4th Wheel — drives site accent `--red` (burgundy)
-- Escape wheel: Mirror Esc Wheel — drives site accent `--blue`; Escape pallet: Mirror Esc Pallet
+- Wheels: 2nd/3rd/4th Wheel — drives site accent `--red`
+- Escape wheel: Mirror Esc Wheel — drives site accent `--yellow`; Escape pallet: Mirror Esc Pallet
 - Front frame: Mirror Front; Rear frame: Mirror Back
-- Motion works, each its own zone: Motion works wheel (Motion Works, 89 mm), Hour wheel (white Hour Wheel, 112 mm, behind the hands), Minute arbor (Minute Arbor, 32 mm)
+- Motion works, each its own zone: Motion works wheel (Motion Works, 89 mm; drives site accent `--blue`), Hour wheel (white Hour Wheel, 112 mm, behind the hands), Minute arbor (Minute Arbor, 32 mm)
 - Pendulum: Pendant; Ratchet: Spur gear (9 teeth) (owner to confirm ratchet guess)
 - Small gray parts: Hour Wheel (gray), Part 2 (owner to confirm where these belong)
 - Fixed (not selectable): M3/M4 screws, Pendulm Rod, 3mm dowels, 5mm tube
@@ -55,7 +55,7 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - "Click / tap to explore": zoom (and on touch devices, rotation) is off until the visitor clicks/taps the clock, so the page scrolls over it. Mouse: ends on pointer leave. Touch: ends on a tap outside. `.idle canvas { touch-action: pan-y }` lets fingers scroll the page.
 - Configurator = click a part: hover glows the whole zone, click (not drag; `e.delta > 4` = drag) opens `components/PartPicker.tsx` with filament swatches. On narrow screens (<560px) the picker is a full-width bottom sheet.
 - Shared color store: `components/ClockColors.tsx` (React context). Updating colors also rewrites the site accent CSS variables (`--red/--blue/--yellow` and `--red-text` for readable button text) and the browser theme-color meta tag.
-- Filaments: `data/filaments.json` (id, name, hex) — the 30 solid Bambu Lab PLA Basic colors, hex codes from Bambu Studio's `resources/profiles/BBL/filament/filaments_color_codes.json` (gradients left out). Zone defaults in `data/zones.ts` use these hexes.
+- Filaments: `data/filaments.json` (id, name, hex) — the 30 solid Bambu Lab PLA Basic colors, hex codes from Bambu Studio's `resources/profiles/BBL/filament/filaments_color_codes.json` (gradients left out). Zone defaults in `data/zones.ts` (= the "ClockMeister" preset) are the owner's Onshape colors snapped to the nearest filament in CIELAB: white→Jade White, red→Red, yellow→Yellow, sky blue→Turquoise (poor match), dark gray→Dark Gray, light gray→Light Gray. Accents moved off the (now white) face: `--yellow` follows the escape wheel, `--blue` the motion works wheel.
 - Presets: `data/presets.ts` (ClockMeister default, Maryland, Pink, Orioles, Ravens) name a filament per zone by its exact name; a misspelling fails the build. Buttons in `components/Presets.tsx`, in a hero sidebar cell under the specs (above the clock on phones). Owner will fine-tune the schemes.
 - The numerals visually sit on the front frame (the big plate), so readability depends on numerals vs. front frame; the picker's contrast warning still compares numerals vs. face (to revisit).
 - Design mode (`npm run dev` only, via `DESIGN_MODE` in `lib/colors.ts`): free color picker in each popup and a "Copy colors" button. Hidden in production.
@@ -63,9 +63,9 @@ Test the mapping without a browser: a Node script loading the GLB with three's G
 - Future ideas: exploded view animation (also as hero background); Santos-inspired line illustration revealed through the empty sidebar "window" cell with a fixed-background effect (must work on iOS, so not plain `background-attachment: fixed`).
 
 ## Design
-- Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, burgundy/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
+- Warm Bauhaus: tokens in `app/globals.css` (paper #f2ede3, ink #141414, red/blue/yellow accents that follow the clock colors). Fonts Jost + IBM Plex Mono via `next/font`.
 - Grid rules: containers are ink-colored with a 3px gap; cells are paper-colored, so gaps read as black lines.
-- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, burgundy/blue blocks at the bottom) and ~62% clock cell with `aspect-ratio: 0.45` (the clock's shape) so the clock spans the full cell width; the cell is ~2 screens tall on laptops and the pendulum is revealed by scrolling. FIT_MARGIN 1.04 so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
+- Hero (`components/Hero.tsx`): ~38% sidebar (intro, specs list, empty window cell, red/blue blocks at the bottom) and ~62% clock cell with `aspect-ratio: 0.45` (the clock's shape) so the clock spans the full cell width; the cell is ~2 screens tall on laptops and the pendulum is revealed by scrolling. FIT_MARGIN 1.04 so the pendulum is revealed by scrolling. Columns `2fr 1fr 3fr 10fr`.
 - Owner preferences: color should be dwarfed by paper/ink; amount of color red > blue > yellow; avoid busy UI.
 
 ## Roadmap
